@@ -1,0 +1,41 @@
+{
+  "name": "truth-terminal",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "phase0": "tsx src/phase0.ts",
+    "phase0:list": "tsx src/phase0.ts --list",
+    "test:grok": "tsx src/test-grok.ts",
+    "test:youtube": "tsx src/test-youtube.ts",
+    "test:research": "tsx src/test-research.ts",
+    "research": "tsx src/test-research.ts",
+    "research:quick": "tsx src/test-research.ts --quick",
+    "review": "tsx src/review.ts"
+  },
+  "keywords": [
+    "polymarket",
+    "prediction-markets",
+    "ai-agents",
+    "research"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "AI-powered prediction market research system",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.0.3",
+    "better-sqlite3": "^12.5.0",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "xai-sdk": "^1.0.0-alpha.0",
+    "youtube-transcript": "^1.2.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0"
+  }
+}
