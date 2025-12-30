@@ -14,7 +14,9 @@ Truth Terminal is a multi-agent prediction market research system. The user (Man
 - **Polymarket API** (`src/polymarket/client.ts`) - Fetches markets, prices, volume. Free tier.
 - **Grok Live Search** (`src/agents/grok.ts`) - Twitter/X + web + news. $25/1k sources.
 - **YouTube Transcripts** (`src/agents/youtube.ts`) - Extract video content. Free.
-- **Claude Research** (`src/agents/claude.ts`) - Basic single-source analysis.
+- **Gemini Bulk Processing** (`src/agents/gemini.ts`) - Offload large text to Gemini 2.0 Flash. Cheap.
+- **Agentic Research** (`src/agents/agentic-research.ts`) - **NEW** Tool-using Opus 4.5 agent with extended thinking.
+- **Per-Market Scratchpad** (`src/agents/scratchpad.ts`) - Memory system for facts, signals, hypotheses.
 - **Multi-Source Pipeline** (`src/agents/research.ts`) - Orchestrates Grok + Claude into structured cases.
 - **SQLite Persistence** (`src/db/index.ts`) - Cases, decisions, trades.
 
@@ -24,15 +26,23 @@ npm run phase0:list              # List top markets
 npm run phase0 <id>              # Claude-only research
 npm run research <id>            # Full Grok+Claude pipeline
 npm run research:quick <id>      # Same, faster
+npm run research:agentic <id>    # NEW: Opus 4.5 with thinking + tools
 npm run test:grok "topic"        # Test Grok alone
 npm run test:youtube <video-id>  # Test YouTube alone
 ```
 
 ### Key Files
-- `src/agents/research.ts:100-150` - The `ENHANCED_RESEARCH_PROMPT`. This is where case quality is tuned.
+- `src/agents/agentic-research.ts` - **The main research agent.** Opus 4.5 with extended thinking, tool use, full transcript logging.
+- `src/agents/gemini.ts` - Gemini tool for bulk text processing (summarize, extract facts, analyze).
+- `src/agents/scratchpad.ts` - Per-market memory: facts, signals, uncertainties, hypotheses, notes.
 - `src/agents/grok.ts` - Grok Live Search integration. Uses `/v1/chat/completions` with `search_parameters`.
 - `src/polymarket/client.ts` - Gamma API at `https://gamma-api.polymarket.com/markets`.
 - `src/db/index.ts` - SQLite schema for cases, decisions, trades, outcomes.
+
+### Output Locations
+- `data/cases/` - Final research cases as JSON
+- `data/scratchpads/` - Per-market scratchpads (facts, signals, hypotheses)
+- `data/transcripts/` - **Full agent conversation logs** (system prompt, thinking, tool calls, results)
 
 ## What's Next (Roadmap)
 
@@ -58,8 +68,41 @@ xAI's Live Search API gives Twitter access at $0.025/source vs X API at $200/mon
 ### Why Claude for Synthesis?
 Grok gathers intel. Claude synthesizes into structured cases. Separation of concerns - Grok has data access, Claude has reasoning quality.
 
+### Why Opus 4.5 with Extended Thinking?
+The agentic research agent uses Opus 4.5 with extended thinking (10k token budget per turn). This gives the model space to reason deeply before acting. The full thinking is logged to transcripts so you can see the agent's reasoning process.
+
+### Why Gemini for Bulk Processing?
+Claude is expensive for large text. Gemini 2.0 Flash is cheap and has 1M context. The agent can offload grunt work (summarizing transcripts, extracting facts from long articles) to Gemini and keep the expensive Claude reasoning for synthesis.
+
 ### Why SQLite?
 Simple, local, inspectable. Cases are also saved as JSON in `data/cases/` for easy grep/review.
+
+## The Agentic Research System
+
+The new `research:agentic` command runs a tool-using Claude Opus 4.5 agent that:
+
+1. **Thinks** - Extended thinking mode lets it reason before acting
+2. **Searches** - Uses Grok for Twitter/web/news intelligence
+3. **Processes** - Can offload bulk text to Gemini
+4. **Remembers** - Builds up facts/signals/hypotheses in a scratchpad
+5. **Finalizes** - Produces a structured research case with thesis, edge, risks
+
+### Agent Tools
+- `grok_search` - Search Twitter, web, news
+- `gemini_process` - Process large text with Gemini
+- `youtube_transcript` - Fetch video transcripts
+- `scratchpad_*` - Read/write facts, signals, uncertainties, notes
+- `update_hypothesis` - Track YES/NO theses with evidence
+- `finalize_research` - Commit to a recommendation
+
+### Transcript Logging
+Every agent run produces a full transcript in `data/transcripts/`. This shows:
+- System prompt
+- Market context
+- Each turn with: thinking, speaking, tool calls, tool results
+- Final recommendation
+
+Read the transcript to understand how the agent reasoned through a market.
 
 ## Mani's Preferences
 
@@ -84,30 +127,35 @@ Mani mentioned wanting a prompt injected between Polymarket fetch and research a
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 GROK_API_KEY=xai-...        # Also accepts XAI_API_KEY
+GEMINI_API_KEY=AIza...      # For bulk text processing
 POLYMARKET_API_KEY=...      # Optional, only for trading
 ```
 
 ## Cost Estimates Per Research Case
 
+- Claude Opus 4.5 (agentic): ~$0.50-2.00 (with extended thinking)
 - Claude Sonnet: ~$0.02-0.05
 - Grok Live Search: ~$0.10-0.50 (depends on sources used)
+- Gemini 2.0 Flash: ~$0.001-0.01 (very cheap)
 - YouTube: Free
 - Polymarket data: Free
 
 ## Known Issues / TODOs
 
-1. Agentic search (grok-4-1-fast with tools) uses `/v1/responses` endpoint which needs different format. Currently using Live Search which works fine.
-2. No review CLI yet - cases are just JSON files.
+1. Grok web search sometimes times out - agent falls back to Twitter-only search which still works.
+2. No review CLI yet - cases are just JSON files and transcripts.
 3. No trade execution wired up.
-4. YouTube integration exists but not plugged into main pipeline by default.
+4. YouTube integration exists but agent needs to be taught when to use it.
+5. Enhanced research prompt needs iteration - teach agent how to decompose markets and what to look for.
 
 ## How to Continue
 
 1. Run `npm run phase0:list` to see current markets.
-2. Pick one, run `npm run research <id>` to test the pipeline.
-3. Check `data/cases/` for output.
-4. Iterate on `ENHANCED_RESEARCH_PROMPT` if cases are garbage.
-5. Build Phase 4 (review CLI) when ready to scale.
+2. Pick one, run `npm run research:agentic <id>` for full Opus+thinking research.
+3. Check `data/transcripts/` for the full agent conversation log.
+4. Check `data/cases/` for the final structured case.
+5. Iterate on `AGENT_SYSTEM_PROMPT` in `agentic-research.ts` to improve agent behavior.
+6. Build Phase 4 (review CLI) when ready to scale.
 
 ---
 

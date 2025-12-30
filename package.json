@@ -12,6 +12,7 @@
     "test:research": "tsx src/test-research.ts",
     "research": "tsx src/test-research.ts",
     "research:quick": "tsx src/test-research.ts --quick",
+    "research:agentic": "tsx src/test-agentic.ts",
     "review": "tsx src/review.ts"
   },
   "keywords": [
