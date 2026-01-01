@@ -173,6 +173,9 @@ export function updateHypothesis(
   if (existing) {
     existing.thesis = thesis;
     existing.confidence = confidence;
+    // Ensure arrays exist (defensive against corrupted data)
+    if (!Array.isArray(existing.evidence)) existing.evidence = [];
+    if (!Array.isArray(existing.counterEvidence)) existing.counterEvidence = [];
     if (evidence) existing.evidence.push(...evidence);
     if (counterEvidence) existing.counterEvidence.push(...counterEvidence);
     existing.updatedAt = new Date().toISOString();
