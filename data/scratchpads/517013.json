@@ -1,0 +1,67 @@
+{
+  "marketId": "517013",
+  "marketQuestion": "Will Superman be the top grossing movie of 2025?",
+  "createdAt": "2025-12-30T06:25:28.495Z",
+  "updatedAt": "2025-12-30T06:34:43.454Z",
+  "notes": "\n[2025-12-30 06:32:44]\nMarket insight: We're literally at Dec 30, 2025 - the market closes Dec 31. Avatar: Fire and Ash seems to be dominating the box office and is the clear frontrunner. Superman appears to be significantly behind. The current market price of 0.1% Yes suggests the market already knows Superman won't be #1.\n",
+  "facts": [
+    "Superman (2025) directed by James Gunn, starring David Corenswet, was released on July 11, 2025",
+    "Superman (2025) grossed approximately $675 million worldwide by late 2025, with $165 million opening weekend domestically",
+    "Fantastic Four (2025) grossed approximately $850 million worldwide as of late December 2025",
+    "Thunderbolts (2025) grossed around $720 million worldwide as of late December 2025",
+    "Avatar: Fire and Ash appears to be leading the 2025 U.S. domestic box office with strong December performance",
+    "Superman opened with $122 million domestically in July 2025 and likely has cumulative domestic gross exceeding $500 million"
+  ],
+  "signals": [
+    "Avatar: Fire and Ash appears to be the current frontrunner for #1 domestic box office in 2025, with Superman likely falling short"
+  ],
+  "uncertainties": [],
+  "sources": [
+    {
+      "type": "grok",
+      "query": "Superman 2025 movie James Gunn release date box office predictions (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:27:31.145Z"
+    },
+    {
+      "type": "grok",
+      "query": "2025 biggest movies box office top grossing films Fantastic Four Thunderbolts Disney Marvel (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:29:37.000Z"
+    },
+    {
+      "type": "grok",
+      "query": "\"domestic box office\" 2025 top movies United States \"box office mojo\" Superman Fantastic Four",
+      "summary": "Found 13 sources",
+      "timestamp": "2025-12-30T06:30:45.715Z"
+    },
+    {
+      "type": "grok",
+      "query": "\"box office mojo\" 2025 year \"top movies\" \"Avatar Fire and Ash\" current standings December 2025 (focus: current box office rankings and final numbers) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:32:39.944Z"
+    },
+    {
+      "type": "grok",
+      "query": "December 30 2025 \"final box office\" 2025 \"number one movie\" domestic current leader (focus: final rankings and any last-minute developments) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:34:43.454Z"
+    }
+  ],
+  "hypotheses": [
+    {
+      "position": "no",
+      "thesis": "Superman will NOT be the top grossing movie of 2025 domestically. Avatar: Fire and Ash appears to be the clear leader, with Superman likely ranking in top 5-10 but well behind the Avatar sequel.",
+      "confidence": 90,
+      "evidence": [
+        "Avatar: Fire and Ash is currently dominating December box office with strong holiday performance",
+        "Superman's estimated domestic total around $500M appears insufficient to beat Avatar",
+        "Market is pricing this at 0.1% Yes, suggesting institutions already know outcome",
+        "We're at Dec 30, only 1 day left - rankings are essentially locked"
+      ],
+      "counterEvidence": [],
+      "addedAt": "2025-12-30T06:32:51.065Z",
+      "updatedAt": "2025-12-30T06:32:51.065Z"
+    }
+  ]
+}

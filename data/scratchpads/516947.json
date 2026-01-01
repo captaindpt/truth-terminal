@@ -1,0 +1,86 @@
+{
+  "marketId": "516947",
+  "marketQuestion": "Maduro out in 2025?",
+  "createdAt": "2025-12-30T06:35:12.916Z",
+  "updatedAt": "2025-12-30T08:02:01.950Z",
+  "notes": "\n[2025-12-30 06:35:18]\nMarket: Maduro out in 2025? Current price: Yes 0.8%, No 99.2%. High volume ($29.7M) suggests active interest. Need to assess: 1) Current political situation in Venezuela, 2) Opposition strength, 3) International pressure, 4) Economic factors, 5) Military loyalty, 6) Recent developments the market might have missed.\n",
+  "facts": [
+    "Venezuela's 2024 presidential election was disputed, with opposition claiming fraud and international observers (OAS) reporting irregularities. Maduro officially won but legitimacy is contested.",
+    "Human Rights Watch documented 100+ protest-related deaths in 2024-2025, suggesting significant government crackdown capability.",
+    "María Corina Machado continues to be portrayed as a key opposition leader gaining international recognition, while Edmundo González remains less prominent in recent discourse",
+    "December 24, 2025: Trump ordered US forces to \"quarantine\" Venezuelan oil shipments, escalating pressure on Maduro regime with military blockade tactics",
+    "December 29, 2025: US conducted first confirmed land-based military strike inside Venezuela, hitting a \"drug boat loading facility\" according to Trump - marking unprecedented escalation"
+  ],
+  "signals": [
+    "Protests have declined in scale from 2024 peaks - opposition momentum appears to be waning rather than building",
+    "Strong bearish sentiment on Twitter regarding Maduro regime stability, with focus on potential military defections due to sanctions pressure",
+    "Russia and China providing strong economic and diplomatic support to Maduro, with Venezuela achieving 6% economic growth in 2025 despite sanctions - regime appears more resilient than fragile",
+    "No confirmed reports of coup, detention, resignation, or government change as of December 30 2025 (8:00 UTC) despite US military strike - suggesting regime resilience even under direct attack"
+  ],
+  "uncertainties": [
+    "No verifiable insider information about actual military defections - Twitter discourse appears speculative and may be echo chamber driven",
+    "With only 36-48 hours remaining before market resolution, could a sudden cascade event still occur? Venezuelan government has been silent on US strike"
+  ],
+  "sources": [
+    {
+      "type": "grok",
+      "query": "Venezuela Maduro 2024 2025 political situation opposition protests latest news (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:36:14.923Z"
+    },
+    {
+      "type": "grok",
+      "query": "Venezuela Maduro military loyalty sanctions pressure December 2024 (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:38:19.231Z"
+    },
+    {
+      "type": "grok",
+      "query": "\"Edmundo González\" \"María Corina Machado\" Venezuela December 2024 January 2025 (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:40:11.892Z"
+    },
+    {
+      "type": "grok",
+      "query": "Venezuela economic crisis oil production Russia China support 2025 (focus: recent developments)",
+      "summary": "Found 20 sources",
+      "timestamp": "2025-12-30T06:41:14.034Z"
+    },
+    {
+      "type": "grok",
+      "query": "Maduro Venezuela December 29 30 2025 latest news removed power coup detention (focus: breaking news, urgent developments)",
+      "summary": "Found 20 sources",
+      "timestamp": "2025-12-30T07:59:15.437Z"
+    },
+    {
+      "type": "grok",
+      "query": "Maduro Venezuela December 30 2025 latest military coup resignation detention government (focus: last 24 hours breaking news)",
+      "summary": "Found 20 sources",
+      "timestamp": "2025-12-30T08:00:11.010Z"
+    },
+    {
+      "type": "grok",
+      "query": "Venezuela Maduro government military December 30 2025 today breaking (focus: last 6 hours real-time)",
+      "summary": "Found 20 sources",
+      "timestamp": "2025-12-30T08:01:28.644Z"
+    }
+  ],
+  "hypotheses": [
+    {
+      "position": "no",
+      "thesis": "Maduro will remain in power through December 31, 2025. Despite unprecedented US military strike on December 29, regime shows no signs of collapse with only 36-48 hours remaining before market resolution.",
+      "confidence": 95,
+      "evidence": "- First US land strike inside Venezuela (Dec 29) targeting \"drug facility\"\n- No coup, detention, or resignation reported as of Dec 30 despite strike\n- Venezuelan government silent but no signs of chaos or defections\n- Military remains loyal per Maduro's Dec 29 address to forces\n- Only 36-48 hours left until market resolution",
+      "counterEvidence": "- US military escalation is unprecedented and could trigger cascade\n- Venezuelan government silence on strike could indicate crisis\n- Twitter speculation about military considering options",
+      "addedAt": "2025-12-30T08:01:40.707Z",
+      "updatedAt": "2025-12-30T08:01:40.707Z"
+    }
+  ],
+  "synthesis": {
+    "recommendedPosition": "no",
+    "confidence": "high",
+    "thesis": "Maduro will remain in power through December 31, 2025 (11:59 PM ET). Despite an unprecedented US military strike inside Venezuela on December 29, there are no signs of regime collapse with only ~42 hours remaining. The regime has absorbed the most significant escalation yet - direct US military action on Venezuelan soil - without any reported coup attempts, military defections, detentions, or resignation. Time has essentially run out for a removal event to occur and be credibly reported.",
+    "keyRisks": "- Black swan military coup in next 24-36 hours triggered by US strike\n- Maduro sudden health event or assassination\n- Pre-arranged resignation deal being announced\n- Cascading military defections we haven't heard about yet\n- Market resolution based on events we don't know about due to information lag",
+    "whatWouldFlip": "Any ONE of these before Dec 31 11:59 PM ET:\n- Credible reports of military coup underway\n- Maduro detained, fled country, or resigned per official sources\n- Opposition figure assumes presidency\n- Military command structure fractures with generals defecting\n- Mass protests overwhelming security forces in Caracas"
+  }
+}

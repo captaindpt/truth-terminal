@@ -1,0 +1,72 @@
+{
+  "marketId": "516716",
+  "marketQuestion": "Khamenei out as Supreme Leader of Iran in 2025?",
+  "createdAt": "2025-12-30T08:20:36.393Z",
+  "updatedAt": "2025-12-30T08:31:30.071Z",
+  "notes": "\n[2025-12-30 08:20:46]\nRESOLUTION MECHANICS:\n- Timeframe: Dec 28, 2024 - Dec 31, 2025 \n- YES if Khamenei is \"removed from power for any length of time\"\n- Removal includes: resigns, detained, loses position, or prevented from fulfilling duties\n- Resolution source: consensus of credible reporting\n- Current market: 0.7% YES, 99.4% NO - extreme confidence he stays in power\n",
+  "facts": [
+    "Khamenei is currently 85 years old (born 1939)",
+    "Assembly of Experts is the 88-member clerical body responsible for selecting Iran's Supreme Leader"
+  ],
+  "signals": [
+    "Recurring health rumors in December 2024 but no confirmed medical events - typical pattern of speculation without substance",
+    "Mojtaba Khamenei (son) mentioned as potential successor but controversial - would provoke unrest similar to 2022 protests"
+  ],
+  "uncertainties": [
+    "Current unrest (Dec 2025) appears to be economic protests not regime-threatening - but could they escalate to threaten Supreme Leader's position?"
+  ],
+  "sources": [
+    {
+      "type": "grok",
+      "query": "Ali Khamenei health condition age rumors 2024 December (focus: recent developments) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:22:48.258Z"
+    },
+    {
+      "type": "grok",
+      "query": "Iran Supreme Leader succession process Assembly of Experts Mojtaba Khamenei (focus: insider opinions) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:24:53.110Z"
+    },
+    {
+      "type": "grok",
+      "query": "Iran unrest protests December 2024 anti-regime demonstrations",
+      "summary": "Found 20 sources",
+      "timestamp": "2025-12-30T08:26:35.251Z"
+    },
+    {
+      "type": "grok",
+      "query": "Iran military coup IRGC Revolutionary Guards loyalty Khamenei (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:30:41.814Z"
+    }
+  ],
+  "hypotheses": [
+    {
+      "position": "no",
+      "thesis": "Khamenei will remain in power through 2025. The Iranian system is designed to protect the Supreme Leader, who controls security forces and has survived multiple waves of protests. At 85, natural death is more likely than removal.",
+      "confidence": 95,
+      "evidence": [
+        "85 years old but no confirmed health crisis despite recurring rumors",
+        "Assembly of Experts unlikely to act preemptively",
+        "Recent economic protests (Dec 2025) focused on economic issues not regime change",
+        "Security apparatus remains loyal to Supreme Leader"
+      ],
+      "counterEvidence": [],
+      "addedAt": "2025-12-30T08:26:48.367Z",
+      "updatedAt": "2025-12-30T08:26:48.367Z"
+    }
+  ],
+  "synthesis": {
+    "recommendedPosition": "no",
+    "confidence": "high",
+    "thesis": "Khamenei will remain Supreme Leader through 2025. At 85, natural death is the only realistic removal scenario, with actuarial odds around 10-15% for the year. All other paths (coup, uprising, forced removal) are virtually impossible given: (1) IRGC's unwavering loyalty and control of security apparatus, (2) Assembly of Experts won't act preemptively, (3) no historical precedent for Supreme Leader removal, (4) recent protests are economic-focused not regime-threatening. The system is explicitly designed to protect the Supreme Leader.",
+    "keyRisks": [
+      "Natural death (primary risk at age 85)",
+      "Severe health crisis leading to incapacitation",
+      "Black swan event like successful assassination (extremely unlikely)",
+      "Escalation of current economic protests into regime-threatening uprising (very unlikely given security forces' loyalty)"
+    ],
+    "whatWouldFlip": "Confirmed reports of: (1) Khamenei hospitalization with life-threatening condition, (2) Assembly of Experts convening emergency succession meetings, (3) IRGC commanders defecting or refusing orders, (4) Mass protests specifically targeting Supreme Leader with military/clerical support. Any of these would be unprecedented."
+  }
+}

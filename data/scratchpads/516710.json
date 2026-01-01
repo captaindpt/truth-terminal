@@ -1,0 +1,130 @@
+{
+  "marketId": "516710",
+  "marketQuestion": "US recession in 2025?",
+  "createdAt": "2025-12-30T06:15:15.451Z",
+  "updatedAt": "2025-12-30T08:32:44.479Z",
+  "notes": "\n[2025-12-30 06:15:22]\nStarting research on US recession in 2025 market. Key details:\n- Current price: 0.4% Yes, 99.6% No (market heavily betting against recession)\n- High volume: $11M+ \n- Resolution criteria: Either NBER declares recession OR two consecutive quarters of negative GDP growth in 2025\n- Market stays open until Feb 2026 to catch late NBER announcements\n- Uses advance estimates, so could resolve quickly once Q1 2025 data comes out\n\nInitial thoughts: Market is pricing in <1% chance of recession. This seems like either strong consensus or potential mispricing. Need to investigate current economic conditions, leading indicators, and expert opinions.\n",
+  "facts": [
+    "Market prices recession probability at 0.4% Yes, 99.6% No as of current data",
+    "Other prediction markets (Polymarket, Kalshi) showing 20-40% recession probability for 2025, significantly higher than this market",
+    "Fed cut rates by 25 basis points in December 2024 to 4.25-4.50%, updated projections show 2.5% GDP growth for 2025, unemployment rising to 4.4%, inflation at 2.8% core",
+    "Fed dot plot indicates only two rate cuts planned for 2025, down from three previously projected",
+    "Fed December 2024 projections: 2.0-2.5% GDP growth in 2025, unemployment 4.2-4.5%, core PCE inflation around 2.1%",
+    "NBER typically declares recessions 4-21 months after they start - 2001 recession declared with 8-month lag, 2008 recession declared with 12-month lag",
+    "Q3 2024 GDP growth reported at ~3.0% (revised to 2.8% final), Q4 2024 forecast around 2.5-3.0% per Atlanta Fed GDPNow"
+  ],
+  "signals": [
+    "Major pricing discrepancy - this market at 0.4% vs other prediction markets at 20-40%, suggesting potential mispricing",
+    "Fed projections show positive GDP growth (2.5%) for 2025, which would make recession unlikely under technical definition",
+    "ISM Manufacturing PMI below 50 (around 48) in December 2024, indicating manufacturing contraction"
+  ],
+  "uncertainties": [],
+  "sources": [
+    {
+      "type": "grok",
+      "query": "US recession 2025 probability economists predictions Federal Reserve economic indicators (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:17:21.971Z"
+    },
+    {
+      "type": "grok",
+      "query": "US recession 2025 probability December 2024 economist forecasts GDP growth unemployment inflation (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:19:17.531Z"
+    },
+    {
+      "type": "grok",
+      "query": "Fed December 2024 meeting rate cuts recession risk economic projections (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T06:23:29.810Z"
+    },
+    {
+      "type": "grok",
+      "query": "yield curve inversion recession indicators December 2024 unemployment claims manufacturing PMI consumer spending",
+      "summary": "Found 20 sources",
+      "timestamp": "2025-12-30T06:24:43.191Z"
+    },
+    {
+      "type": "grok",
+      "query": "Q4 2024 GDP growth estimate US economy December 2024 economic data ISM manufacturing PMI unemployment rate (focus: recent developments) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:22:53.164Z"
+    },
+    {
+      "type": "grok",
+      "query": "December 2024 FOMC meeting Fed economic projections 2025 GDP forecast inflation unemployment recession probability Jerome Powell (focus: recent developments) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:24:48.833Z"
+    },
+    {
+      "type": "grok",
+      "query": "NBER recession definition criteria historical lag announcement timing 2001 2008 recession declarations (focus: insider opinions) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:27:05.777Z"
+    },
+    {
+      "type": "grok",
+      "query": "Q3 2024 GDP growth US advance estimate final data Q2 2024 economic expansion Atlanta Fed GDPNow forecast Q4 2024 (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:29:33.772Z"
+    },
+    {
+      "type": "grok",
+      "query": "Sahm rule recession indicator December 2024 yield curve inversion Conference Board leading indicators unemployment claims jobless (focus: recent developments) (twitter only)",
+      "summary": "Twitter sentiment",
+      "timestamp": "2025-12-30T08:31:23.604Z"
+    }
+  ],
+  "hypotheses": [
+    {
+      "position": "no",
+      "thesis": "No recession in 2025 - Fed is engineering soft landing with GDP growth projected at 2.0-2.5%, unemployment stable around 4.2-4.5%, and inflation moderating. Despite manufacturing weakness (ISM <50), services sector and labor market remain resilient. Fed has room to cut rates if needed.",
+      "confidence": 90,
+      "evidence": [
+        "Fed projects 2.0-2.5% GDP growth for 2025",
+        "Q3 2024 GDP at 2.8%, Q4 forecast 2.5-3.0%",
+        "Unemployment stable at ~4.2%",
+        "Fed has rate cut flexibility",
+        "No current quarter has negative GDP growth"
+      ],
+      "counterEvidence": [
+        "ISM Manufacturing PMI below 50 indicating contraction",
+        "Yield curve remains inverted",
+        "Sahm Rule potentially near trigger levels"
+      ],
+      "addedAt": "2025-12-30T08:31:34.358Z",
+      "updatedAt": "2025-12-30T08:31:34.358Z"
+    },
+    {
+      "position": "yes",
+      "thesis": "Recession in 2025 due to lagged effects of rate hikes, persistent yield curve inversion, and manufacturing contraction spreading to broader economy. Either Q1/Q2 weakness triggers two consecutive negative quarters, or deteriorating conditions prompt NBER declaration by year-end.",
+      "confidence": 10,
+      "evidence": [
+        "Manufacturing already in contraction (ISM <50)",
+        "Yield curve longest inversion in history",
+        "NBER can declare retroactively even if GDP doesn't go negative"
+      ],
+      "counterEvidence": [
+        "Current GDP growth strong (2.8% Q3, 2.5-3% Q4E)",
+        "Fed projecting positive growth throughout 2025",
+        "Unemployment remains near historic lows",
+        "Fed can cut rates to support economy"
+      ],
+      "addedAt": "2025-12-30T08:31:54.671Z",
+      "updatedAt": "2025-12-30T08:31:54.671Z"
+    }
+  ],
+  "synthesis": {
+    "recommendedPosition": "yes",
+    "confidence": "low",
+    "thesis": "The market is severely underpricing recession risk at 0.4% when true probability is likely 15-25%. While the Fed projects 2-2.5% growth and current momentum is positive (2.8% Q3 2024), several factors create non-trivial recession risk: (1) Manufacturing already in contraction (ISM <50), (2) Historically long yield curve inversion typically precedes recessions, (3) NBER can declare recession retroactively even without two negative GDP quarters if broad-based weakness emerges. The massive pricing gap between this market (0.4%) and other prediction markets (20-40%) suggests either this market knows something special or is significantly mispriced.",
+    "keyRisks": [
+      "Fed successfully engineers soft landing as projected - they have rate cut ammunition",
+      "Current GDP momentum (2.8% Q3) continues through 2025",
+      "Service sector strength offsets manufacturing weakness",
+      "Labor market remains resilient preventing NBER declaration",
+      "Market knows something specific we don't (insider information on Q1 2025 data)"
+    ],
+    "whatWouldFlip": "I would flip to NO if: (1) Q1 2025 advance GDP comes in above 2%, confirming continued expansion, (2) ISM Manufacturing PMI rises back above 50, ending contraction, (3) Unemployment remains below 4.5% through Q2 2025, (4) Fed explicitly signals confidence by pausing rate cuts, (5) Yield curve uninverts without recession materializing. Any 2-3 of these would suggest soft landing achieved."
+  }
+}
