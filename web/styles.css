@@ -120,6 +120,14 @@ code {
   grid-template-rows: auto 1fr;
 }
 
+.window.is-focused {
+  border-color: var(--accent-2);
+}
+
+.window.is-focused .window-header {
+  border-bottom-color: var(--accent-2);
+}
+
 .window.is-hidden {
   display: none;
 }

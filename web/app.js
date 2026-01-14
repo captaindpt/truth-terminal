@@ -152,6 +152,11 @@ function setupWindows() {
   const MIN_W = 320;
   const MIN_H = 180;
 
+  function setFocused(target) {
+    for (const w of windows) w.classList.remove('is-focused');
+    target.classList.add('is-focused');
+  }
+
   for (const win of windows) {
     const id = win.dataset.window;
     if (!id) continue;
@@ -161,7 +166,10 @@ function setupWindows() {
     applyWindowGeometry(win, geom);
     bringToFront(win, state);
 
-    win.addEventListener('pointerdown', () => bringToFront(win, state));
+    win.addEventListener('pointerdown', () => {
+      setFocused(win);
+      bringToFront(win, state);
+    });
 
     const closeBtn = win.querySelector('.window-close');
     if (closeBtn) {
@@ -178,6 +186,7 @@ function setupWindows() {
         if (e.button !== 0) return;
         if (isTypingTarget(e.target)) return;
 
+        setFocused(win);
         bringToFront(win, state);
         win.setPointerCapture(e.pointerId);
 
@@ -221,6 +230,7 @@ function setupWindows() {
       resize.addEventListener('pointerdown', (e) => {
         if (e.button !== 0) return;
         e.stopPropagation();
+        setFocused(win);
         bringToFront(win, state);
         win.setPointerCapture(e.pointerId);
 
@@ -285,6 +295,7 @@ function setupWindows() {
       btn.textContent = isOpen ? 'Focus' : 'Open';
       btn.addEventListener('click', () => {
         win.classList.remove('is-hidden');
+        setFocused(win);
         bringToFront(win, state);
         setWindowsMenuOpen(false);
       });
