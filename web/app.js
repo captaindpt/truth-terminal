@@ -451,6 +451,26 @@ function appendChatMessage(role, text) {
   chatEl.scrollTop = chatEl.scrollHeight;
 }
 
+function setPinnedUserPrompt(text) {
+  const pin = $('chat-pin');
+  if (!pin) return;
+  const trimmed = String(text || '').trim();
+  if (!trimmed) {
+    pin.classList.remove('is-visible');
+    pin.setAttribute('aria-hidden', 'true');
+    pin.textContent = '';
+    return;
+  }
+  pin.textContent = trimmed;
+  pin.classList.add('is-visible');
+  pin.setAttribute('aria-hidden', 'false');
+  try {
+    localStorage.setItem('tt:chat:lastUserMessage', trimmed);
+  } catch {
+    // ignore
+  }
+}
+
 function appendIntelEvent(event) {
   const intelEl = $('intel');
   if (!intelEl) return;
@@ -494,6 +514,13 @@ function setupChat() {
   const input = $('chat-input');
   if (!form || !input) return;
 
+  try {
+    const last = localStorage.getItem('tt:chat:lastUserMessage');
+    if (last) setPinnedUserPrompt(last);
+  } catch {
+    // ignore
+  }
+
   appendChatMessage('assistant', 'Truth Terminal agent ready. Use /exec to run tools, e.g. "/exec grok <query>".');
 
   form.addEventListener('submit', async (e) => {
@@ -503,6 +530,7 @@ function setupChat() {
     input.value = '';
 
     appendChatMessage('user', message);
+    setPinnedUserPrompt(message);
 
     try {
       const resp = await chat(getSessionId(), message);
