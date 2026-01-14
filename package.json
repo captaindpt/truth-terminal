@@ -13,7 +13,11 @@
     "research": "tsx src/test-research.ts",
     "research:quick": "tsx src/test-research.ts --quick",
     "research:agentic": "tsx src/test-agentic.ts",
-    "review": "tsx src/review.ts"
+    "review": "tsx src/review.ts",
+    "stream": "tsx src/manipulation/stream.ts",
+    "stream:stats": "tsx src/manipulation/stats.ts",
+    "stream:enrich": "tsx src/manipulation/enrich.ts",
+    "stream:detect": "tsx src/manipulation/detect.ts"
   },
   "keywords": [
     "polymarket",
@@ -28,10 +32,12 @@
     "@anthropic-ai/sdk": "^0.71.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.0.3",
+    "@types/ws": "^8.18.1",
     "better-sqlite3": "^12.5.0",
     "dotenv": "^17.2.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
+    "ws": "^8.18.3",
     "xai-sdk": "^1.0.0-alpha.0",
     "youtube-transcript": "^1.2.1"
   },

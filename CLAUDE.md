@@ -1,5 +1,7 @@
 # CLAUDE.md - Project Context for Future Sessions
 
+read ./my_workspace to see what we been up to and where we're at
+
 ## What This Is
 
 Truth Terminal is a multi-agent prediction market research system. The user (Mani) sits at the top as the final decision-maker and capital allocator. The system automates the grunt work of building information substrates for judgment calls on Polymarket bets.

@@ -5,4 +5,5 @@ dist/
 *.db
 *.sqlite
 data/cases/
+data/*.log
 .DS_Store
