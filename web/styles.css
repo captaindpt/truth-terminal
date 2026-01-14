@@ -200,26 +200,26 @@ code {
 
 .window-resize {
   position: absolute;
-  right: 4px;
-  bottom: 4px;
+  right: 1px;
+  bottom: 1px;
   width: 22px;
   height: 22px;
   cursor: nwse-resize;
   border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(42, 47, 51, 0.9);
+  background: transparent;
+  border: none;
 }
 
 .window-resize:hover {
-  border-color: rgba(47, 224, 122, 0.55);
-  box-shadow: 0 0 0 1px rgba(47, 224, 122, 0.14) inset;
+  background: transparent;
+  box-shadow: none;
 }
 
 .window-resize::before {
   content: '';
   position: absolute;
-  right: 6px;
-  bottom: 6px;
+  right: 4px;
+  bottom: 4px;
   width: 10px;
   height: 10px;
   border-right: 2px solid rgba(47, 224, 122, 0.65);
