@@ -37,6 +37,19 @@ async function exec(line) {
   return res.json();
 }
 
+async function chat(sessionId, message) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, message })
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+  }
+  return res.json();
+}
+
 function renderOutputs(outputs) {
   const lines = [];
   for (const o of outputs || []) {
@@ -155,6 +168,15 @@ function setupWindows() {
   function setFocused(target) {
     for (const w of windows) w.classList.remove('is-focused');
     target.classList.add('is-focused');
+  }
+
+  function focusWindowById(id) {
+    const win = windows.find((w) => w.dataset.window === id);
+    if (!win) return false;
+    win.classList.remove('is-hidden');
+    setFocused(win);
+    bringToFront(win, state);
+    return true;
   }
 
   for (const win of windows) {
@@ -333,7 +355,10 @@ function setupWindows() {
     }
   });
 
-  return { renderWindowsMenu };
+  // default focus: agent window if present, else first window
+  focusWindowById('agent');
+
+  return { renderWindowsMenu, focusWindowById };
 }
 
 function setupTerminal() {
@@ -393,6 +418,103 @@ function setupChips() {
 
 setInterval(setClock, 1000);
 setClock();
-setupWindows();
+const windowManager = setupWindows();
 setupTerminal();
 setupChips();
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function appendChatMessage(role, text) {
+  const chatEl = $('chat');
+  if (!chatEl) return;
+  const row = document.createElement('div');
+  row.className = `chat-msg chat-${role}`;
+
+  const meta = document.createElement('div');
+  meta.className = 'chat-meta';
+  meta.textContent = role === 'assistant' ? 'agent' : 'you';
+
+  const body = document.createElement('div');
+  body.className = 'chat-body';
+  body.innerHTML = escapeHtml(text).replaceAll('\n', '<br/>');
+
+  row.appendChild(meta);
+  row.appendChild(body);
+  chatEl.appendChild(row);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function appendIntelEvent(event) {
+  const intelEl = $('intel');
+  if (!intelEl) return;
+
+  const item = document.createElement('div');
+  item.className = 'intel-item';
+  item.dataset.targetWindow = event.targetWindow || 'intel';
+
+  const title = document.createElement('div');
+  title.className = 'intel-title';
+  title.textContent = `${event.title || 'tool'}: ${event.command || ''}`.trim();
+
+  const body = document.createElement('div');
+  body.className = 'intel-body';
+  const outputs = event.outputs || [];
+  body.textContent = Array.isArray(outputs) ? renderOutputs(outputs) : JSON.stringify(outputs, null, 2);
+
+  item.appendChild(title);
+  item.appendChild(body);
+  item.addEventListener('click', () => {
+    if (windowManager?.focusWindowById) {
+      windowManager.focusWindowById(item.dataset.targetWindow);
+    }
+  });
+
+  intelEl.prepend(item);
+}
+
+function getSessionId() {
+  const key = 'tt:chat:sessionId';
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = `sess_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
+function setupChat() {
+  const form = $('chat-form');
+  const input = $('chat-input');
+  if (!form || !input) return;
+
+  appendChatMessage('assistant', 'Truth Terminal agent ready. Use /exec to run tools, e.g. "/exec grok <query>".');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    input.value = '';
+
+    appendChatMessage('user', message);
+
+    try {
+      const resp = await chat(getSessionId(), message);
+      if (resp?.assistant) appendChatMessage('assistant', resp.assistant);
+      for (const ev of resp?.events || []) appendIntelEvent(ev);
+      if (resp?.events?.length && windowManager?.focusWindowById) {
+        windowManager.focusWindowById('intel');
+      }
+    } catch (err) {
+      appendChatMessage('assistant', `Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  });
+}
+
+setupChat();

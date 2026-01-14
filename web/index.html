@@ -101,20 +101,43 @@
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
 
-        <section class="window" data-window="log" data-title="Chat / Notes" data-x="410" data-y="80" data-w="520" data-h="430" aria-label="Chat Window">
+        <section class="window" data-window="agent" data-title="Agent" data-x="410" data-y="80" data-w="520" data-h="430" aria-label="Agent Window">
           <div class="window-header" data-drag-handle>
-            <div class="window-title">Chat / Notes</div>
+            <div class="window-title">Agent</div>
             <div class="window-meta">
-              <span class="pill">LOG</span>
+              <span class="pill">CHAT</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-chat">
+            <div class="chat" id="chat"></div>
+            <form class="chat-form" id="chat-form">
+              <span class="prompt">you&gt;</span>
+              <input id="chat-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Ask anything..." />
+              <button class="btn" type="submit">Send</button>
+            </form>
+          </div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
+        <section class="window" data-window="intel" data-title="Intel" data-x="540" data-y="540" data-w="660" data-h="270" aria-label="Intel Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Intel</div>
+            <div class="window-meta">
+              <span class="pill">TOOLS</span>
             </div>
             <div class="window-actions">
               <button class="window-btn window-close" type="button" title="Close">×</button>
             </div>
           </div>
           <div class="window-body">
-            <div class="log" id="log">
-              <div class="log-line">Truth Terminal UI skeleton loaded.</div>
-              <div class="log-line">Press ` to open the terminal, then try: <code>AAPL US DES</code> or <code>edgar filings AAPL 5</code></div>
+            <div class="intel" id="intel">
+              <div class="intel-item">
+                <div class="intel-title">Backbone</div>
+                <div class="intel-body">Tool calls and citations will show up here (click to focus).</div>
+              </div>
             </div>
           </div>
           <div class="window-resize" data-resize-handle title="Resize"></div>

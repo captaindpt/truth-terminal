@@ -6,6 +6,28 @@ import { fileURLToPath } from 'node:url';
 import { TerminalCore } from '../core/index.js';
 import type { CommandContext, CommandSpec } from '../core/types.js';
 import { edgarCommand, grokCommand } from '../integrations/index.js';
+import Anthropic from '@anthropic-ai/sdk';
+
+type ChatRole = 'user' | 'assistant';
+type ChatMessage = { role: ChatRole; text: string; ts: number };
+type ToolEvent = {
+  id: string;
+  type: 'tool';
+  title: string;
+  command: string;
+  outputs: unknown;
+  targetWindow: string;
+  ts: number;
+};
+
+type ChatSession = {
+  id: string;
+  messages: ChatMessage[];
+  events: ToolEvent[];
+};
+
+const sessions = new Map<string, ChatSession>();
+const anthropic = new Anthropic();
 
 function buildContext(): CommandContext {
   return { now: new Date(), env: process.env };
@@ -36,6 +58,48 @@ function buildCore(): TerminalCore {
   commands.push(grokCommand());
   commands.push(edgarCommand());
   return new TerminalCore(commands);
+}
+
+function getOrCreateSession(sessionId: string): ChatSession {
+  const existing = sessions.get(sessionId);
+  if (existing) return existing;
+  const created: ChatSession = { id: sessionId, messages: [], events: [] };
+  sessions.set(sessionId, created);
+  return created;
+}
+
+function newId(prefix: string): string {
+  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+}
+
+async function llmReply(messages: ChatMessage[]): Promise<string> {
+  const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
+  if (!hasKey) {
+    return 'Set ANTHROPIC_API_KEY to enable the agent. Meanwhile you can run tools via /exec, e.g. "/exec grok <query>" or "/exec edgar filings AAPL 5".';
+  }
+
+  const model = process.env.TT_AGENT_MODEL || 'claude-sonnet-4-20250514';
+  const trimmed = messages.slice(-20).map((m) => ({
+    role: m.role,
+    content: m.text
+  })) as Array<{ role: 'user' | 'assistant'; content: string }>;
+
+  try {
+    const response = await anthropic.messages.create({
+      model,
+      max_tokens: 800,
+      system:
+        'You are Truth Terminal: a concise research assistant. Be direct, use bullet points when helpful. If you need external data, ask the user to run a tool with /exec (for now).',
+      messages: trimmed
+    });
+
+    const textBlock = response.content.find((b) => b.type === 'text');
+    if (!textBlock || textBlock.type !== 'text') throw new Error('No text response from Claude');
+    return textBlock.text;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return `Agent unavailable right now (${message}). Use /exec to run tools, e.g. "/exec grok <query>" or "/exec edgar filings AAPL 5".`;
+  }
 }
 
 function json(res: any, statusCode: number, body: unknown): void {
@@ -129,6 +193,48 @@ async function main(): Promise<void> {
         const line = typeof body?.line === 'string' ? body.line : '';
         const outputs = await core.execute(line, buildContext());
         return json(res, 200, outputs);
+      }
+
+      if (pathname === '/api/chat' && req.method === 'POST') {
+        const body = await readJson(req);
+        const sessionId = typeof body?.sessionId === 'string' && body.sessionId.trim() ? body.sessionId.trim() : 'default';
+        const message = typeof body?.message === 'string' ? body.message.trim() : '';
+        if (!message) return json(res, 400, { ok: false, error: 'message is required' });
+
+        const session = getOrCreateSession(sessionId);
+        const now = Date.now();
+        session.messages.push({ role: 'user', text: message, ts: now });
+
+        const toolEvents: ToolEvent[] = [];
+        let assistantText = '';
+
+        if (message.startsWith('/exec ')) {
+          const command = message.slice('/exec '.length).trim();
+          const outputs = await core.execute(command, buildContext());
+          const event: ToolEvent = {
+            id: newId('tool'),
+            type: 'tool',
+            title: 'exec',
+            command,
+            outputs,
+            targetWindow: 'intel',
+            ts: Date.now()
+          };
+          session.events.push(event);
+          toolEvents.push(event);
+          assistantText = `Ran: ${command}`;
+        } else {
+          assistantText = await llmReply(session.messages);
+        }
+
+        session.messages.push({ role: 'assistant', text: assistantText, ts: Date.now() });
+
+        return json(res, 200, {
+          ok: true,
+          sessionId: session.id,
+          assistant: assistantText,
+          events: toolEvents
+        });
       }
 
       if (pathname === '/api/commands') {
