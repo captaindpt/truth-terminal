@@ -37,6 +37,21 @@ async function exec(line) {
   return res.json();
 }
 
+async function fetchNews(q, limit) {
+  const url = new URL('/api/news', window.location.origin);
+  if (q && String(q).trim()) url.searchParams.set('q', String(q).trim());
+  url.searchParams.set('limit', String(limit || 30));
+
+  const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+  }
+  const data = await res.json();
+  if (!data?.ok) throw new Error(data?.error || 'news error');
+  return data.items || [];
+}
+
 async function chat(sessionId, message) {
   const res = await fetch('/api/chat', {
     method: 'POST',
@@ -546,3 +561,117 @@ function setupChat() {
 }
 
 setupChat();
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.valueOf())) return '--:--';
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
+function setupNews() {
+  const form = $('news-form');
+  const input = $('news-input');
+  const list = $('news');
+  const status = $('news-status');
+  if (!form || !input || !list || !status) return;
+
+  const key = 'tt:news:q';
+  let query = '';
+  try {
+    query = localStorage.getItem(key) || '';
+  } catch {
+    // ignore
+  }
+  input.value = query;
+
+  const seen = new Set();
+  let pollTimer = null;
+
+  function renderItem(item) {
+    const row = document.createElement('div');
+    row.className = 'news-item';
+
+    const top = document.createElement('div');
+    top.className = 'news-topline';
+    const left = document.createElement('span');
+    left.className = 'news-time';
+    left.textContent = formatTime(item.publishedAt || '');
+    const right = document.createElement('span');
+    right.className = 'news-source';
+    right.textContent = item.source || '';
+    top.appendChild(left);
+    top.appendChild(right);
+
+    const title = document.createElement('div');
+    title.className = 'news-title';
+    const a = document.createElement('a');
+    a.href = item.url;
+    a.target = '_blank';
+    a.rel = 'noreferrer';
+    a.textContent = item.title;
+    title.appendChild(a);
+
+    row.appendChild(top);
+    row.appendChild(title);
+    return row;
+  }
+
+  async function poll() {
+    try {
+      status.textContent = 'loading';
+      const items = await fetchNews(query, 30);
+      status.textContent = `ok ${items.length}`;
+
+      let added = 0;
+      for (const item of items) {
+        const dedupeKey = item.url;
+        if (!dedupeKey || seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+        list.prepend(renderItem(item));
+        added++;
+      }
+
+      if (added > 0) {
+        // keep scroll position stable if user isn't at top
+        // (simple version: do nothing; prepend changes are usually fine)
+      }
+    } catch (err) {
+      status.textContent = 'err';
+      const message = err instanceof Error ? err.message : String(err);
+      const row = document.createElement('div');
+      row.className = 'news-item';
+      row.textContent = `Error: ${message}`;
+      list.prepend(row);
+    }
+  }
+
+  function start() {
+    if (pollTimer) clearInterval(pollTimer);
+    poll();
+    pollTimer = setInterval(poll, 15000);
+  }
+
+  function reset(newQuery) {
+    query = String(newQuery || '').trim();
+    try {
+      localStorage.setItem(key, query);
+    } catch {
+      // ignore
+    }
+    list.innerHTML = '';
+    seen.clear();
+    start();
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    reset(input.value);
+  });
+
+  start();
+}
+
+setupNews();

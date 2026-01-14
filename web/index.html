@@ -145,6 +145,28 @@
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
 
+        <section class="window" data-window="news" data-title="News" data-x="12" data-y="540" data-w="500" data-h="360" aria-label="News Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">News</div>
+            <div class="window-meta">
+              <span class="pill">N</span>
+              <span class="pill" id="news-status">idle</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-news">
+            <form class="news-form" id="news-form">
+              <span class="prompt">q&gt;</span>
+              <input id="news-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="e.g. tesla, ukraine, artificial intelligence" />
+              <button class="btn" type="submit">Set</button>
+            </form>
+            <div class="news" id="news"></div>
+          </div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
         <section class="window" data-window="tape" data-title="Tape / Feed" data-x="12" data-y="590" data-w="1188" data-h="220" aria-label="Tape Window">
           <div class="window-header" data-drag-handle>
             <div class="window-title">Tape / Feed</div>

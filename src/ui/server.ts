@@ -110,6 +110,75 @@ function json(res: any, statusCode: number, body: unknown): void {
   res.end(data);
 }
 
+type NewsItem = {
+  id: string;
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+};
+
+const newsCache = new Map<string, { ts: number; items: NewsItem[] }>();
+
+function toIsoOrEmpty(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  // GDELT uses: YYYYMMDDTHHMMSSZ
+  const gdelt = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
+  if (gdelt) {
+    const [, y, mo, d, h, mi, s] = gdelt;
+    return `${y}-${mo}-${d}T${h}:${mi}:${s}Z`;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.valueOf())) return '';
+  return parsed.toISOString();
+}
+
+async function fetchGdeltNews(query: string, limit: number): Promise<NewsItem[]> {
+  const q = query.trim() ? query.trim() : '(breaking OR announced OR report OR reports)';
+  const max = Math.max(1, Math.min(50, limit));
+  const url = new URL('https://api.gdeltproject.org/api/v2/doc/doc');
+  url.searchParams.set('query', q);
+  url.searchParams.set('mode', 'ArtList');
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('maxrecords', String(max));
+  url.searchParams.set('sort', 'HybridRel');
+
+  const res = await fetch(url.toString(), {
+    headers: { 'Accept': 'application/json,text/plain;q=0.9,*/*;q=0.8' }
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`GDELT HTTP ${res.status}${text ? `: ${text}` : ''}`);
+  }
+  const raw = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error(`GDELT returned non-JSON: ${raw.slice(0, 200)}`);
+  }
+
+  const articles: any[] = Array.isArray(data?.articles) ? data.articles : [];
+
+  return articles
+    .map((a) => {
+      const title = typeof a?.title === 'string' ? a.title : '';
+      const url = typeof a?.url === 'string' ? a.url : '';
+      const source =
+        typeof a?.domain === 'string'
+          ? a.domain
+          : typeof a?.sourcecountry === 'string'
+            ? a.sourcecountry
+            : 'unknown';
+      const publishedAt =
+        toIsoOrEmpty(a?.seendate) || toIsoOrEmpty(a?.date) || toIsoOrEmpty(a?.publishedat) || '';
+      const id = newId('news');
+      return { id, title, url, source, publishedAt };
+    })
+    .filter((i) => i.title && i.url);
+}
+
 function notFound(res: any): void {
   res.statusCode = 404;
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -193,6 +262,32 @@ async function main(): Promise<void> {
         const line = typeof body?.line === 'string' ? body.line : '';
         const outputs = await core.execute(line, buildContext());
         return json(res, 200, outputs);
+      }
+
+      if (pathname === '/api/news' && req.method === 'GET') {
+        let query = url.searchParams.get('q') || '';
+        const limit = Number(url.searchParams.get('limit') || '20');
+        const max = Number.isFinite(limit) ? Math.max(1, Math.min(50, limit)) : 20;
+
+        const trimmed = query.trim();
+        if (trimmed.length > 0 && trimmed.length < 3) {
+          if (trimmed.toLowerCase() === 'ai') query = 'artificial intelligence';
+          else {
+            return json(res, 400, { ok: false, error: 'Query too short; use a longer phrase (e.g. "artificial intelligence")' });
+          }
+        }
+
+        const key = `${query}::${max}`;
+
+        const cached = newsCache.get(key);
+        const now = Date.now();
+        if (cached && now - cached.ts < 10_000) {
+          return json(res, 200, { ok: true, items: cached.items, cached: true });
+        }
+
+        const items = await fetchGdeltNews(query, max);
+        newsCache.set(key, { ts: now, items });
+        return json(res, 200, { ok: true, items, cached: false });
       }
 
       if (pathname === '/api/chat' && req.method === 'POST') {

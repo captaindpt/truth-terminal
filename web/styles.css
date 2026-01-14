@@ -206,6 +206,72 @@ code {
   overflow: hidden;
 }
 
+.window-body-news {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.news-form {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+}
+
+.news {
+  border: 1px solid rgba(42, 47, 51, 0.95);
+  background: rgba(0, 0, 0, 0.28);
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  border-radius: var(--radius);
+}
+
+.news-item {
+  padding: 10px;
+  border-bottom: 1px solid rgba(42, 47, 51, 0.55);
+  display: grid;
+  gap: 6px;
+}
+
+.news-item:last-child {
+  border-bottom: none;
+}
+
+.news-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.news-title {
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.news-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.news-title a:hover {
+  color: var(--accent-2);
+  text-decoration: underline;
+}
+
+.news-source {
+  color: var(--accent);
+}
+
+.news-time {
+  color: var(--muted);
+}
+
 .window-resize {
   position: absolute;
   right: 1px;
