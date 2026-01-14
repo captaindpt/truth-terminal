@@ -18,7 +18,8 @@
     "stream:stats": "tsx src/manipulation/stats.ts",
     "stream:enrich": "tsx src/manipulation/enrich.ts",
     "stream:detect": "tsx src/manipulation/detect.ts",
-    "tt": "tsx src/ui/terminal.ts"
+    "tt": "tsx src/ui/terminal.ts",
+    "ui": "tsx src/ui/server.ts"
   },
   "keywords": [
     "polymarket",

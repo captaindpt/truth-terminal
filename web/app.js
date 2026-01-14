@@ -1,0 +1,136 @@
+function $(id) {
+  return document.getElementById(id);
+}
+
+function setClock() {
+  const el = $('clock');
+  if (!el) return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  el.textContent = `${hh}:${mm}:${ss}`;
+}
+
+function appendTerminal(text) {
+  const out = $('terminal-output');
+  if (!out) return;
+  const divider = out.textContent && out.textContent.trim().length ? '\n\n' : '';
+  out.textContent = `${out.textContent || ''}${divider}${text}`;
+  out.scrollTop = out.scrollHeight;
+}
+
+async function exec(line) {
+  const res = await fetch('/api/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ line })
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+  }
+  return res.json();
+}
+
+function renderOutputs(outputs) {
+  const lines = [];
+  for (const o of outputs || []) {
+    if (o.kind === 'error') {
+      lines.push(`Error: ${o.message}`);
+      continue;
+    }
+    if (o.kind === 'text') {
+      if (o.title) lines.push(o.title);
+      lines.push(o.text);
+      continue;
+    }
+    if (o.kind === 'json') {
+      if (o.title) lines.push(o.title);
+      lines.push(JSON.stringify(o.value, null, 2));
+      continue;
+    }
+    if (o.kind === 'table') {
+      if (o.title) lines.push(o.title);
+      const header = o.columns.join('  ');
+      lines.push(header);
+      lines.push(o.columns.map((c) => '-'.repeat(c.length)).join('  '));
+      for (const row of o.rows || []) {
+        lines.push(row.map((v) => String(v ?? '')).join('  '));
+      }
+      continue;
+    }
+  }
+  return lines.join('\n');
+}
+
+function setTerminalOpen(open) {
+  const overlay = $('terminal');
+  if (!overlay) return;
+  overlay.classList.toggle('is-open', open);
+  overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (open) {
+    const input = $('terminal-input');
+    if (input) input.focus();
+  }
+}
+
+function setupTerminal() {
+  const form = $('terminal-form');
+  const input = $('terminal-input');
+  const close = $('terminal-close');
+
+  if (close) {
+    close.addEventListener('click', () => setTerminalOpen(false));
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '`' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      const overlay = $('terminal');
+      const open = overlay && overlay.classList.contains('is-open');
+      setTerminalOpen(!open);
+      return;
+    }
+    if (e.key === 'Escape') {
+      const overlay = $('terminal');
+      const open = overlay && overlay.classList.contains('is-open');
+      if (open) {
+        e.preventDefault();
+        setTerminalOpen(false);
+      }
+    }
+  });
+
+  if (form && input) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const line = input.value.trim();
+      if (!line) return;
+      input.value = '';
+      appendTerminal(`tt> ${line}`);
+      try {
+        const outputs = await exec(line);
+        appendTerminal(renderOutputs(outputs));
+      } catch (err) {
+        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    });
+  }
+}
+
+function setupChips() {
+  const chips = document.querySelectorAll('.chip[data-cmd]');
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      chips.forEach((c) => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+    });
+  });
+}
+
+setInterval(setClock, 1000);
+setClock();
+setupTerminal();
+setupChips();
+

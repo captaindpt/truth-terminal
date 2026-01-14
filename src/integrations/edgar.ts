@@ -29,7 +29,13 @@ async function secFetchJson(url: string, env: NodeJS.ProcessEnv): Promise<any> {
 
   if (!response.ok) {
     const body = await response.text().catch(() => '');
-    throw new Error(`SEC HTTP ${response.status} for ${url}${body ? `: ${body}` : ''}`);
+    const retryAfter = response.headers.get('retry-after');
+    const rateHint =
+      response.status === 403
+        ? ` SEC may be rate-limiting your IP/User-Agent; slow down and try again${retryAfter ? ` (retry-after=${retryAfter}s)` : ''
+          }.`
+        : '';
+    throw new Error(`SEC HTTP ${response.status} for ${url}.${rateHint}${body ? ` Body: ${body}` : ''}`);
   }
 
   return response.json();
@@ -155,4 +161,3 @@ export function edgarCommand(): CommandSpec {
     }
   };
 }
-

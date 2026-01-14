@@ -62,6 +62,11 @@ npm run stream:stats
 npm run tt
 npm run tt -- --eval "help"
 npm run tt -- --eval "edgar ticker AAPL"
+
+# Truth Terminal UI (Bloomberg-vibes web skeleton)
+npm run ui
+# then open http://127.0.0.1:7777
+# try in the in-app terminal: `AAPL US DES` or `AAPL US CF 5`
 ```
 
 ## Architecture

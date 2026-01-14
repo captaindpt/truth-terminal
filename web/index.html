@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Truth Terminal</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="hint">Backtick (`) to open terminal</span>
+        </div>
+        <div class="topbar-center">
+          <div class="chips">
+            <button class="chip is-active" data-cmd="DES" title="Description">DES</button>
+            <button class="chip" data-cmd="CF" title="Filings">CF</button>
+            <button class="chip" data-cmd="G" title="Chart">G</button>
+            <button class="chip" data-cmd="N" title="News">N</button>
+            <button class="chip" data-cmd="OPT" title="Options">OPT</button>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="status">
+            <span class="status-item">HELP</span>
+            <span class="status-item" id="clock">--:--:--</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="grid">
+        <section class="panel panel-main" aria-label="Main Panel">
+          <div class="panel-header">
+            <div class="panel-title">Description</div>
+            <div class="panel-meta">
+              <span class="pill">AAPL</span>
+              <span class="pill">US</span>
+              <span class="pill">DES</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="placeholder">
+              <div class="placeholder-title">Panel skeleton</div>
+              <div class="placeholder-text">
+                This is a layout stub. Next we’ll replace these blocks with real modules (DES/CF/N/G/OPT).
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="card">
+                <div class="card-title">Snapshot</div>
+                <div class="kv">
+                  <div class="kv-row"><span>Exchange</span><span>—</span></div>
+                  <div class="kv-row"><span>Currency</span><span>—</span></div>
+                  <div class="kv-row"><span>Market Cap</span><span>—</span></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-title">Chart</div>
+                <div class="chart-skeleton"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-right" aria-label="Right Panel">
+          <div class="panel-header">
+            <div class="panel-title">Option Chain</div>
+            <div class="panel-meta">
+              <span class="pill">NVDA</span>
+              <span class="pill">US</span>
+              <span class="pill">OPT</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Strike</th>
+                  <th>Bid</th>
+                  <th>Ask</th>
+                  <th>Vol</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel panel-center" aria-label="Center Panel">
+          <div class="panel-header">
+            <div class="panel-title">Chat / Notes</div>
+            <div class="panel-meta">
+              <span class="pill">LOG</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="log" id="log">
+              <div class="log-line">Truth Terminal UI skeleton loaded.</div>
+              <div class="log-line">Press ` to open the terminal, then try: <code>AAPL US DES</code> or <code>edgar filings AAPL 5</code></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-bottom" aria-label="Bottom Panel">
+          <div class="panel-header">
+            <div class="panel-title">Tape / Feed</div>
+            <div class="panel-meta">
+              <span class="pill">LOCAL</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <table class="table table-compact">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Topic</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody id="tape">
+                <tr><td>--:--:--</td><td>Wire this to RSS/GDELT later</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <div class="terminal-overlay" id="terminal" aria-hidden="true">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-title">Terminal</div>
+            <div class="terminal-actions">
+              <button class="btn" id="terminal-close" title="Close">Esc</button>
+            </div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-output" id="terminal-output"></div>
+            <form class="terminal-form" id="terminal-form">
+              <span class="prompt">tt&gt;</span>
+              <input
+                id="terminal-input"
+                class="terminal-input"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder='Try: AAPL US DES'
+              />
+              <button class="btn" type="submit">Run</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+
