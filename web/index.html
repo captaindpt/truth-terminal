@@ -23,23 +23,27 @@
         </div>
         <div class="topbar-right">
           <div class="status">
+            <button class="status-btn" id="windows-btn" type="button" title="Windows">WIN</button>
             <span class="status-item">HELP</span>
             <span class="status-item" id="clock">--:--:--</span>
           </div>
         </div>
       </header>
 
-      <main class="grid">
-        <section class="panel panel-main" aria-label="Main Panel">
-          <div class="panel-header">
-            <div class="panel-title">Description</div>
-            <div class="panel-meta">
+      <main class="desktop" id="desktop" aria-label="Desktop">
+        <section class="window" data-window="des" data-title="Description" data-x="12" data-y="12" data-w="780" data-h="560" aria-label="Description Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Description</div>
+            <div class="window-meta">
               <span class="pill">AAPL</span>
               <span class="pill">US</span>
               <span class="pill">DES</span>
             </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
           </div>
-          <div class="panel-body">
+          <div class="window-body">
             <div class="placeholder">
               <div class="placeholder-title">Panel skeleton</div>
               <div class="placeholder-text">
@@ -63,16 +67,19 @@
           </div>
         </section>
 
-        <section class="panel panel-right" aria-label="Right Panel">
-          <div class="panel-header">
-            <div class="panel-title">Option Chain</div>
-            <div class="panel-meta">
+        <section class="window" data-window="opt" data-title="Option Chain" data-x="820" data-y="12" data-w="380" data-h="560" aria-label="Option Chain Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Option Chain</div>
+            <div class="window-meta">
               <span class="pill">NVDA</span>
               <span class="pill">US</span>
               <span class="pill">OPT</span>
             </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
           </div>
-          <div class="panel-body">
+          <div class="window-body">
             <table class="table">
               <thead>
                 <tr>
@@ -92,14 +99,17 @@
           </div>
         </section>
 
-        <section class="panel panel-center" aria-label="Center Panel">
-          <div class="panel-header">
-            <div class="panel-title">Chat / Notes</div>
-            <div class="panel-meta">
+        <section class="window" data-window="log" data-title="Chat / Notes" data-x="410" data-y="80" data-w="520" data-h="430" aria-label="Chat Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Chat / Notes</div>
+            <div class="window-meta">
               <span class="pill">LOG</span>
             </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
           </div>
-          <div class="panel-body">
+          <div class="window-body">
             <div class="log" id="log">
               <div class="log-line">Truth Terminal UI skeleton loaded.</div>
               <div class="log-line">Press ` to open the terminal, then try: <code>AAPL US DES</code> or <code>edgar filings AAPL 5</code></div>
@@ -107,14 +117,17 @@
           </div>
         </section>
 
-        <section class="panel panel-bottom" aria-label="Bottom Panel">
-          <div class="panel-header">
-            <div class="panel-title">Tape / Feed</div>
-            <div class="panel-meta">
+        <section class="window" data-window="tape" data-title="Tape / Feed" data-x="12" data-y="590" data-w="1188" data-h="220" aria-label="Tape Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Tape / Feed</div>
+            <div class="window-meta">
               <span class="pill">LOCAL</span>
             </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
           </div>
-          <div class="panel-body">
+          <div class="window-body">
             <table class="table table-compact">
               <thead>
                 <tr>
@@ -130,6 +143,14 @@
           </div>
         </section>
       </main>
+
+      <div class="menu" id="windows-menu" aria-hidden="true">
+        <div class="menu-header">
+          <div class="menu-title">Windows</div>
+          <button class="menu-close" id="windows-close" type="button" title="Close">Esc</button>
+        </div>
+        <div class="menu-body" id="windows-list"></div>
+      </div>
 
       <div class="terminal-overlay" id="terminal" aria-hidden="true">
         <div class="terminal">
@@ -160,4 +181,3 @@
     <script src="./app.js"></script>
   </body>
 </html>
-
