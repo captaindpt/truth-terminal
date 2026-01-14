@@ -1,5 +1,7 @@
 # Session Log - Jan 3, 2026
 
+Note: the project direction has expanded since this log — Truth Terminal is now intended to be a general-purpose “query + synthesis” terminal across many sources, not only Polymarket research.
+
 ## What We Built Tonight
 
 ### Manipulation Detection System

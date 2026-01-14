@@ -1,26 +1,26 @@
 # Truth Terminal
 
-AI-powered prediction market research system. A hierarchical multi-agent architecture where specialized agents research Polymarket bets, and you remain the final decision-maker.
+A terminal-first “truth stack”: query multiple data sources (social, web, markets, prediction markets, etc.), synthesize signals, and build a durable local substrate for decisions.
 
 ## The Vision
 
-You sit down, open the orchestrator. It's been watching Polymarket - hundreds of markets. The system has pre-filtered to 20-30 that have mispricing signals, sufficient liquidity, or time-sensitivity.
+You sit down, open the terminal, and ask questions.
 
-For each, research agents have built cases: news, Twitter sentiment, expert commentary, historical context. Each case has a thesis, confidence level, key uncertainties, and what would change the assessment.
+Truth Terminal pulls data from whatever sources you’ve wired in (prediction markets, social, web research, financial markets, scrapers), then produces structured outputs you can scan quickly: theses, uncertainties, what would change the call, links/evidence, and “what’s priced vs what isn’t”.
 
-You scroll through. Most you dismiss in seconds. But a few click. You drill in, ask the orchestrator questions. It can go deeper on demand - more searches, steelman the opposite position.
+The north star is velocity: if you find a new high-signal source, you should be able to add an integration fast and immediately query it.
 
-When ready, you approve. The system executes on Polymarket.
+Trading/execution can exist as one integration, but it’s not the identity of the project.
 
 ## Current Status
 
-**Phase 0-3 Complete.** Core research pipeline working:
+Core integrations working:
 
-- Polymarket API integration (free, full market data)
-- Grok/xAI Live Search (Twitter/X + web + news)
+- Prediction market research pipeline (Polymarket ingestion + multi-source case building)
+- Grok/xAI Live Search (X/Twitter + web + news)
 - YouTube transcript extraction
-- Claude synthesis into structured cases
-- SQLite persistence
+- SQLite persistence for cases/outputs
+- Polymarket manipulation detection subsystem (`src/manipulation/`)
 
 ## Quick Start
 
@@ -35,6 +35,7 @@ cp .env.example .env
 ### Commands
 
 ```bash
+# Prediction-market research
 # List top markets by volume
 npm run phase0:list
 
@@ -48,35 +49,21 @@ npm run research:quick 516719   # Faster, same sources
 # Test individual components
 npm run test:grok "Russia Ukraine ceasefire"
 npm run test:youtube <video-id>
+
+# Manipulation detection (Polymarket)
+npm run stream
+npm run stream:enrich
+npm run stream:detect
+npm run stream:stats
 ```
 
 ## Architecture
 
-```
-                    ┌─────────────┐
-                    │     You     │
-                    │ (Intuition) │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ Orchestrator│ ← Claude (judgment layer)
-                    │    Agent    │
-                    └──────┬──────┘
-                           │
-    ┌──────────────────────┼──────────────────────┐
-    │                      │                      │
-┌───▼───┐            ┌────▼────┐            ┌────▼────┐
-│ Grok  │            │ YouTube │            │ Claude  │
-│ X/Web │            │Transcripts│           │Research │
-└───┬───┘            └────┬────┘            └────┬────┘
-    │                     │                      │
-    └─────────────────────┼──────────────────────┘
-                          │
-                   ┌──────▼──────┐
-                   │ Polymarket  │
-                   │     API     │
-                   └─────────────┘
-```
+Truth Terminal is evolving from “Polymarket research” into a general-purpose query + synthesis terminal:
+
+- **Sources (pluggable):** X/Twitter, web/news, prediction markets, financial markets, scrapers, etc.
+- **Processing:** enrichment, normalization, caching, and (optionally) LLM analysis/synthesis
+- **Outputs:** structured cases, logs, and local databases you can grep/query
 
 ## Project Structure
 
@@ -89,6 +76,7 @@ src/
 │   └── research.ts     # Multi-source research orchestrator
 ├── polymarket/
 │   └── client.ts       # Polymarket API client
+├── manipulation/        # Polymarket manipulation detection
 ├── db/
 │   └── index.ts        # SQLite for cases, decisions, trades
 ├── types/
@@ -107,7 +95,7 @@ src/
 | Grok Live Search | ✅ | $25/1k sources | Twitter/X + web + news |
 | YouTube Transcripts | ✅ | Free | Video content analysis |
 | Claude Sonnet | ✅ | API pricing | Analysis and synthesis |
-| Alpha Vantage | 🔜 | Free tier | Stock/crypto data |
+| Financial markets (TBD) | 🔜 | Varies | Prices, flows, fundamentals |
 
 ## Research Case Output
 
@@ -134,13 +122,14 @@ Each research case includes:
 
 ## Development Roadmap
 
-- [x] Phase 0: Basic research loop
-- [x] Phase 1: Polymarket ingestion
-- [x] Phase 2: Single-agent research
-- [x] Phase 3: Multi-source research (Grok, YouTube)
-- [ ] Phase 4: Review CLI/UI
-- [ ] Phase 5: Trade execution
-- [ ] Phase 6: Calibration loop
+- [x] Prediction market research (Polymarket)
+- [x] Social/web search (Grok) + YouTube ingestion
+- [x] Manipulation detection (Polymarket)
+- [ ] Unify “query tool” interface across sources
+- [ ] Add financial market data integration(s)
+- [ ] Add additional prediction markets
+- [ ] Add fast scraping integrations (as-needed)
+- [ ] Improve review UX (terminal/CLI)
 
 ## API Costs
 

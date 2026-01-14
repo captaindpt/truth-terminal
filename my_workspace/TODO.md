@@ -9,7 +9,17 @@
 
 ---
 
-## Phase 2: Enhanced Detection
+## Direction: Truth Terminal (Unified Query Tool)
+
+- [ ] Define a consistent “query tool” interface for all sources (inputs/outputs, caching, logging)
+- [ ] Create a lightweight pattern for adding new integrations quickly (e.g., one file + registry)
+- [ ] Decide how Mani’s separate Twitter tool plugs in (reuse code vs call as a service)
+- [ ] Add at least one financial markets integration (prices/volatility/newsflow)
+- [ ] Add at least one additional prediction market integration
+
+---
+
+## Manipulation Detection: Enhanced Detection
 
 - [ ] **Topic clustering** - Group markets by entity (Venezuela, Google, etc.)
   - Parse market titles for named entities
@@ -25,7 +35,7 @@
 
 ---
 
-## Phase 3: Win Rate Tracking
+## Manipulation Detection: Win Rate Tracking
 
 - [ ] Fetch resolution data from API
 - [ ] Calculate win rate per wallet
@@ -33,11 +43,10 @@
 
 ---
 
-## Phase 4: Integration with Research System
+## Cross-Integration Ideas
 
-- [ ] When manipulation detected, auto-research that market
-- [ ] "Follow the smart money" — if insider buys, investigate why
-- [ ] Alert Mani to piggyback on insider trades
+- [ ] When manipulation detected, auto-pull more context (news/social/web) for that market
+- [ ] “Follow the smart money” workflows (alerts → context → decision)
 
 ---
 

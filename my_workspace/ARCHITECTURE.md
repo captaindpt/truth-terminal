@@ -1,9 +1,13 @@
 # Truth Terminal Architecture
 
-## Two Systems
+## Current Shape
 
-### 1. Research System (Original)
-**Purpose:** AI agents research Polymarket bets, build cases for Mani to review.
+Truth Terminal is evolving from a Polymarket research tool into a general-purpose terminal for querying many data sources and building a local “truth substrate”.
+
+Today, that shows up as two major integrations (plus a shared storage + agents layer).
+
+### 1. Prediction Market Research (Polymarket)
+**Purpose:** Research prediction markets and produce structured cases for fast review.
 
 **Location:** `src/agents/`, `src/polymarket/`
 
@@ -29,8 +33,8 @@ npm run research:agentic <id>  # Full Opus research
 
 ---
 
-### 2. Manipulation Detection System (New)
-**Purpose:** Detect insider trading and market manipulation.
+### 2. Manipulation Detection (Polymarket)
+**Purpose:** Detect insider trading and market manipulation patterns from trade flow.
 
 **Location:** `src/manipulation/`
 
@@ -57,6 +61,16 @@ npm run stream:stats     # Quick stats
 ```
 
 ---
+
+## Next Architectural Move: A Unified “Query Tool”
+
+The direction is to make adding new sources fast (web scrapes, financial market feeds, additional prediction markets, Mani’s separate Twitter tool, etc.) and expose them behind a consistent query surface.
+
+Conceptually:
+- **Integrations / connectors** fetch raw data (with caching + normalization)
+- **Processors** enrich/cluster/detect patterns
+- **Agents (optional)** synthesize into structured outputs
+- **Stores** keep everything local + inspectable (SQLite + logs)
 
 ## Databases
 

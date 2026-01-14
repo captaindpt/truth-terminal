@@ -4,26 +4,32 @@ read ./my_workspace to see what we been up to and where we're at
 
 ## What This Is
 
-Truth Terminal is a multi-agent prediction market research system. The user (Mani) sits at the top as the final decision-maker and capital allocator. The system automates the grunt work of building information substrates for judgment calls on Polymarket bets.
+Truth Terminal is Mani’s terminal-first “truth stack”: a growing set of integrations that pull data from different sources (social, web research, markets, prediction markets, scrapers) and turn it into a local, queryable substrate for judgment and action.
+
+Prediction markets (Polymarket) remain a core use case, but they are now just one source category among many.
 
 ## The Vision (Mani's Words)
 
-"I have a computer use Claude operating Polymarket. That Claude talks to other Claudes and gives them tasks - individual bets to research. Each research Claude does whatever it can - web search, thinking, getting info - and builds a case, a narrative, with reasoning. Then I review them fast, pick ones I have intuition on, and make bets with my money."
+"This is gonna be my terminal to find truth. I will query my tool and it will get me data from different sources. If I find a source that I can scrape I can make the integration real fast and go ahead."
+
+The system should bias toward:
+- Fast integrations (low friction to add new sources)
+- Durable local storage (SQLite/logs you can inspect)
+- High-signal synthesis (structured outputs you can review quickly)
 
 ## Current State (As of Dec 30, 2024)
 
 ### What Works
-- **Polymarket API** (`src/polymarket/client.ts`) - Fetches markets, prices, volume. Free tier.
-- **Grok Live Search** (`src/agents/grok.ts`) - Twitter/X + web + news. $25/1k sources.
-- **YouTube Transcripts** (`src/agents/youtube.ts`) - Extract video content. Free.
-- **Gemini Bulk Processing** (`src/agents/gemini.ts`) - Offload large text to Gemini 2.0 Flash. Cheap.
-- **Agentic Research** (`src/agents/agentic-research.ts`) - **NEW** Tool-using Opus 4.5 agent with extended thinking.
-- **Per-Market Scratchpad** (`src/agents/scratchpad.ts`) - Memory system for facts, signals, hypotheses.
-- **Multi-Source Pipeline** (`src/agents/research.ts`) - Orchestrates Grok + Claude into structured cases.
-- **SQLite Persistence** (`src/db/index.ts`) - Cases, decisions, trades.
+- **Prediction market ingestion** (`src/polymarket/client.ts`) - Fetches markets, prices, volume (Polymarket).
+- **Social + web research** (`src/agents/grok.ts`) - Grok Live Search for X/Twitter + web + news.
+- **YouTube ingestion** (`src/agents/youtube.ts`) - Extract video transcripts.
+- **LLM synthesis** (`src/agents/research.ts`, `src/agents/agentic-research.ts`) - Structured cases + tool-using research.
+- **Durable storage** (`src/db/index.ts`) - SQLite persistence for outputs.
+- **Manipulation detection** (`src/manipulation/`) - Trade collection + enrichment + detection queries (Polymarket).
 
 ### Commands
 ```bash
+# Prediction-market research
 npm run phase0:list              # List top markets
 npm run phase0 <id>              # Claude-only research
 npm run research <id>            # Full Grok+Claude pipeline
@@ -31,6 +37,12 @@ npm run research:quick <id>      # Same, faster
 npm run research:agentic <id>    # NEW: Opus 4.5 with thinking + tools
 npm run test:grok "topic"        # Test Grok alone
 npm run test:youtube <video-id>  # Test YouTube alone
+
+# Manipulation detection (Polymarket)
+npm run stream                   # Collect trades (background)
+npm run stream:enrich            # Enrich wallets + markets
+npm run stream:detect            # Run detection report
+npm run stream:stats             # Quick overview
 ```
 
 ### Key Files
@@ -48,19 +60,20 @@ npm run test:youtube <video-id>  # Test YouTube alone
 
 ## What's Next (Roadmap)
 
-### Phase 4: Review CLI/UI
-Build an interface to scroll through cases fast. Approve/reject/ask for more. Current pain: reading JSON files manually.
+### Unify the “Query Tool”
+Move toward a single interface for asking questions and pulling data from multiple sources (social/web, prediction markets, financial markets, custom scrapers). Existing components are “integrations”; the missing piece is a consistent query/response surface.
 
-### Phase 5: Trade Execution
-Wire up Polymarket trading API. When Mani approves, place the order. The API supports full trading (order signing, submission). See `https://docs.polymarket.com` for CLOB API.
+### Review UX (Terminal/CLI)
+Make it easy to scan outputs quickly (cases, alerts, evidence) without reading raw JSON/logs.
 
-### Phase 6: Calibration Loop
-Track outcomes. Which cases did Mani approve that won? Which did he override correctly? Build feedback loop into case ranking.
+### Add Integrations
+- Financial markets data
+- Additional prediction markets
+- Scrapers for specific high-signal sites
+- Reuse Mani’s separate Twitter tool where it’s better than Grok
 
-### Future Intel Sources
-- **Alpha Vantage / Yahoo Finance** - Stock/crypto data for market-correlated bets.
-- **LinkedIn** - Hostile territory, requires cookies, account bans after ~50 profiles. Skip for now.
-- **Bloomberg Second Measure** - Credit card transaction data. Institutional pricing ($20k+/year). Not accessible yet.
+### Optional: Execution + Feedback
+Trade execution and calibration loops remain useful, but should be treated as optional integrations rather than the project identity.
 
 ## Architecture Decisions
 

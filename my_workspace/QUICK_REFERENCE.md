@@ -1,5 +1,7 @@
 # Quick Reference
 
+Truth Terminal is expanding into a general-purpose terminal for querying many sources; the commands below reflect the current implemented integrations.
+
 ## Commands
 
 ```bash
