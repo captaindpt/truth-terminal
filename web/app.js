@@ -149,6 +149,8 @@ function setupWindows() {
 
   const windows = Array.from(desktop.querySelectorAll('.window'));
   const state = { z: 10 };
+  const MIN_W = 320;
+  const MIN_H = 180;
 
   for (const win of windows) {
     const id = win.dataset.window;
@@ -205,6 +207,52 @@ function setupWindows() {
           const y = Number.parseFloat(win.style.top || '0');
           const w = Number.parseFloat(win.style.width || String(rect.width));
           const h = Number.parseFloat(win.style.height || String(rect.height));
+          saveWindowGeometry(id, { x, y, w, h });
+        };
+
+        win.addEventListener('pointermove', onMove);
+        win.addEventListener('pointerup', onUp);
+        win.addEventListener('pointercancel', onUp);
+      });
+    }
+
+    const resize = win.querySelector('[data-resize-handle]');
+    if (resize) {
+      resize.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        bringToFront(win, state);
+        win.setPointerCapture(e.pointerId);
+
+        const rect = win.getBoundingClientRect();
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startW = rect.width;
+        const startH = rect.height;
+
+        const desktopRect = desktop.getBoundingClientRect();
+        const left = rect.left - desktopRect.left;
+        const top = rect.top - desktopRect.top;
+
+        const maxW = desktopRect.width - left;
+        const maxH = desktopRect.height - top;
+
+        const onMove = (ev) => {
+          const nextW = clamp(startW + (ev.clientX - startX), MIN_W, Math.max(MIN_W, maxW));
+          const nextH = clamp(startH + (ev.clientY - startY), MIN_H, Math.max(MIN_H, maxH));
+          win.style.width = `${nextW}px`;
+          win.style.height = `${nextH}px`;
+        };
+
+        const onUp = () => {
+          win.removeEventListener('pointermove', onMove);
+          win.removeEventListener('pointerup', onUp);
+          win.removeEventListener('pointercancel', onUp);
+
+          const x = Number.parseFloat(win.style.left || String(left));
+          const y = Number.parseFloat(win.style.top || String(top));
+          const w = Number.parseFloat(win.style.width || String(startW));
+          const h = Number.parseFloat(win.style.height || String(startH));
           saveWindowGeometry(id, { x, y, w, h });
         };
 
