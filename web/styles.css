@@ -31,6 +31,91 @@ body {
   font-family: var(--sans);
 }
 
+.bottombar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 38px;
+  border-top: 1px solid var(--border-2);
+  background: #07080a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  z-index: 2500;
+}
+
+.ws-tabs {
+  display: flex;
+  gap: 6px;
+  overflow: auto;
+  flex: 1;
+  scrollbar-width: none;
+}
+
+.ws-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ws-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-2);
+  background: #0a0b0d;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ws-tab.is-active {
+  border-color: rgba(47, 224, 122, 0.6);
+  color: var(--text);
+  box-shadow: 0 0 0 1px rgba(47, 224, 122, 0.14) inset;
+}
+
+.ws-tab-name {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-tab-close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ws-tab-close:hover {
+  color: var(--accent);
+}
+
+.ws-add {
+  border: 1px solid var(--border-2);
+  background: #0a0b0d;
+  color: var(--accent-2);
+  font-family: var(--mono);
+  font-size: 16px;
+  width: 34px;
+  height: 28px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.ws-add:hover {
+  border-color: rgba(47, 224, 122, 0.6);
+}
+
 code {
   font-family: var(--mono);
   color: var(--accent);
@@ -98,7 +183,7 @@ code {
 }
 
 .desktop {
-  height: calc(100vh - 52px);
+  height: calc(100vh - 52px - 38px);
   padding: 12px;
   position: relative;
   overflow: hidden;

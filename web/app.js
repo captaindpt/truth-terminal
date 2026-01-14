@@ -6,6 +6,14 @@ function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
+function newId(prefix) {
+  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+}
+
+function wsKey(workspaceId, suffix) {
+  return `tt:ws:${workspaceId}:${suffix}`;
+}
+
 function setClock() {
   const el = $('clock');
   if (!el) return;
@@ -120,8 +128,16 @@ function isTypingTarget(target) {
   return tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable;
 }
 
-function windowStorageKey(id) {
-  return `tt:window:${id}`;
+function windowStorageKey(workspaceId, id) {
+  return wsKey(workspaceId, `window:${id}:geom`);
+}
+
+function windowHiddenKey(workspaceId, id) {
+  return wsKey(workspaceId, `window:${id}:hidden`);
+}
+
+function windowFocusKey(workspaceId) {
+  return wsKey(workspaceId, 'window:focused');
 }
 
 function applyWindowGeometry(el, geom) {
@@ -141,7 +157,7 @@ function readWindowGeometry(el) {
 
 function loadWindowGeometry(id, fallback) {
   try {
-    const raw = localStorage.getItem(windowStorageKey(id));
+    const raw = localStorage.getItem(id);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
     if (
@@ -158,9 +174,9 @@ function loadWindowGeometry(id, fallback) {
   return fallback;
 }
 
-function saveWindowGeometry(id, geom) {
+function saveWindowGeometry(storageKey, geom) {
   try {
-    localStorage.setItem(windowStorageKey(id), JSON.stringify(geom));
+    localStorage.setItem(storageKey, JSON.stringify(geom));
   } catch {
     // ignore
   }
@@ -171,7 +187,7 @@ function bringToFront(el, state) {
   el.style.zIndex = String(state.z);
 }
 
-function setupWindows() {
+function setupWindows(getWorkspaceId) {
   const desktop = $('desktop');
   if (!desktop) return;
 
@@ -183,6 +199,11 @@ function setupWindows() {
   function setFocused(target) {
     for (const w of windows) w.classList.remove('is-focused');
     target.classList.add('is-focused');
+    try {
+      localStorage.setItem(windowFocusKey(getWorkspaceId()), target.dataset.window || '');
+    } catch {
+      // ignore
+    }
   }
 
   function focusWindowById(id) {
@@ -191,16 +212,51 @@ function setupWindows() {
     win.classList.remove('is-hidden');
     setFocused(win);
     bringToFront(win, state);
+    try {
+      localStorage.setItem(windowHiddenKey(getWorkspaceId(), id), '0');
+    } catch {
+      // ignore
+    }
     return true;
+  }
+
+  function applyWorkspaceToWindows(workspaceId) {
+    state.z = 10;
+    for (const win of windows) {
+      const id = win.dataset.window;
+      if (!id) continue;
+
+      const fallback = readWindowGeometry(win);
+      const geom = loadWindowGeometry(windowStorageKey(workspaceId, id), fallback);
+      applyWindowGeometry(win, geom);
+
+      let hidden = false;
+      try {
+        hidden = localStorage.getItem(windowHiddenKey(workspaceId, id)) === '1';
+      } catch {
+        hidden = false;
+      }
+      win.classList.toggle('is-hidden', hidden);
+
+      bringToFront(win, state);
+    }
+
+    // restore focus if possible
+    let focusedId = '';
+    try {
+      focusedId = localStorage.getItem(windowFocusKey(workspaceId)) || '';
+    } catch {
+      focusedId = '';
+    }
+    if (focusedId && focusWindowById(focusedId)) return;
+    focusWindowById('agent');
   }
 
   for (const win of windows) {
     const id = win.dataset.window;
     if (!id) continue;
 
-    const fallback = readWindowGeometry(win);
-    const geom = loadWindowGeometry(id, fallback);
-    applyWindowGeometry(win, geom);
+    // geometry/visibility will be set in applyWorkspaceToWindows
     bringToFront(win, state);
 
     win.addEventListener('pointerdown', () => {
@@ -213,6 +269,11 @@ function setupWindows() {
       closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         win.classList.add('is-hidden');
+        try {
+          localStorage.setItem(windowHiddenKey(getWorkspaceId(), id), '1');
+        } catch {
+          // ignore
+        }
         renderWindowsMenu(windows);
       });
     }
@@ -253,7 +314,7 @@ function setupWindows() {
           const y = Number.parseFloat(win.style.top || '0');
           const w = Number.parseFloat(win.style.width || String(rect.width));
           const h = Number.parseFloat(win.style.height || String(rect.height));
-          saveWindowGeometry(id, { x, y, w, h });
+          saveWindowGeometry(windowStorageKey(getWorkspaceId(), id), { x, y, w, h });
         };
 
         win.addEventListener('pointermove', onMove);
@@ -300,7 +361,7 @@ function setupWindows() {
           const y = Number.parseFloat(win.style.top || String(top));
           const w = Number.parseFloat(win.style.width || String(startW));
           const h = Number.parseFloat(win.style.height || String(startH));
-          saveWindowGeometry(id, { x, y, w, h });
+          saveWindowGeometry(windowStorageKey(getWorkspaceId(), id), { x, y, w, h });
         };
 
         win.addEventListener('pointermove', onMove);
@@ -332,6 +393,11 @@ function setupWindows() {
       btn.textContent = isOpen ? 'Focus' : 'Open';
       btn.addEventListener('click', () => {
         win.classList.remove('is-hidden');
+        try {
+          localStorage.setItem(windowHiddenKey(getWorkspaceId(), id), '0');
+        } catch {
+          // ignore
+        }
         setFocused(win);
         bringToFront(win, state);
         setWindowsMenuOpen(false);
@@ -370,10 +436,9 @@ function setupWindows() {
     }
   });
 
-  // default focus: agent window if present, else first window
-  focusWindowById('agent');
+  applyWorkspaceToWindows(getWorkspaceId());
 
-  return { renderWindowsMenu, focusWindowById };
+  return { renderWindowsMenu, focusWindowById, applyWorkspaceToWindows };
 }
 
 function setupTerminal() {
@@ -431,12 +496,6 @@ function setupChips() {
   });
 }
 
-setInterval(setClock, 1000);
-setClock();
-const windowManager = setupWindows();
-setupTerminal();
-setupChips();
-
 function escapeHtml(s) {
   return String(s)
     .replaceAll('&', '&amp;')
@@ -479,11 +538,6 @@ function setPinnedUserPrompt(text) {
   pin.textContent = trimmed;
   pin.classList.add('is-visible');
   pin.setAttribute('aria-hidden', 'false');
-  try {
-    localStorage.setItem('tt:chat:lastUserMessage', trimmed);
-  } catch {
-    // ignore
-  }
 }
 
 function appendIntelEvent(event) {
@@ -515,28 +569,70 @@ function appendIntelEvent(event) {
 }
 
 function getSessionId() {
-  const key = 'tt:chat:sessionId';
-  let id = localStorage.getItem(key);
-  if (!id) {
-    id = `sess_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
-    localStorage.setItem(key, id);
-  }
-  return id;
+  // kept for backward compat; workspace-aware version is below
+  return 'default';
 }
 
-function setupChat() {
+function setupChat(getWorkspaceId) {
   const form = $('chat-form');
   const input = $('chat-input');
   if (!form || !input) return;
 
-  try {
-    const last = localStorage.getItem('tt:chat:lastUserMessage');
-    if (last) setPinnedUserPrompt(last);
-  } catch {
-    // ignore
+  const chatEl = $('chat');
+  const pinEl = $('chat-pin');
+
+  function clearChatMessages() {
+    if (!chatEl) return;
+    const keep = pinEl ? [pinEl] : [];
+    chatEl.innerHTML = '';
+    for (const n of keep) chatEl.appendChild(n);
   }
 
-  appendChatMessage('assistant', 'Truth Terminal agent ready. Use /exec to run tools, e.g. "/exec grok <query>".');
+  function getChatSessionId(workspaceId) {
+    const key = wsKey(workspaceId, 'chat:sessionId');
+    let id = null;
+    try {
+      id = localStorage.getItem(key);
+    } catch {
+      id = null;
+    }
+    if (!id) {
+      id = newId('sess');
+      try {
+        localStorage.setItem(key, id);
+      } catch {
+        // ignore
+      }
+    }
+    return id;
+  }
+
+  function loadPinned(workspaceId) {
+    let last = '';
+    try {
+      last = localStorage.getItem(wsKey(workspaceId, 'chat:lastUserMessage')) || '';
+    } catch {
+      last = '';
+    }
+    setPinnedUserPrompt(last);
+  }
+
+  function persistPinned(workspaceId, message) {
+    try {
+      localStorage.setItem(wsKey(workspaceId, 'chat:lastUserMessage'), message);
+    } catch {
+      // ignore
+    }
+  }
+
+  function loadWorkspace(workspaceId) {
+    clearChatMessages();
+    loadPinned(workspaceId);
+    appendChatMessage('assistant', `Workspace: ${workspaceId}`);
+    appendChatMessage('assistant', 'Use /exec to run tools, e.g. "/exec grok <query>".');
+  }
+
+  loadWorkspace(getWorkspaceId());
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -546,9 +642,10 @@ function setupChat() {
 
     appendChatMessage('user', message);
     setPinnedUserPrompt(message);
+    persistPinned(getWorkspaceId(), message);
 
     try {
-      const resp = await chat(getSessionId(), message);
+      const resp = await chat(getChatSessionId(getWorkspaceId()), message);
       if (resp?.assistant) appendChatMessage('assistant', resp.assistant);
       for (const ev of resp?.events || []) appendIntelEvent(ev);
       if (resp?.events?.length && windowManager?.focusWindowById) {
@@ -558,9 +655,9 @@ function setupChat() {
       appendChatMessage('assistant', `Error: ${err instanceof Error ? err.message : String(err)}`);
     }
   });
-}
 
-setupChat();
+  return { loadWorkspace };
+}
 
 function formatTime(iso) {
   const d = new Date(iso);
@@ -571,21 +668,14 @@ function formatTime(iso) {
   return `${hh}:${mm}:${ss}`;
 }
 
-function setupNews() {
+function setupNews(getWorkspaceId) {
   const form = $('news-form');
   const input = $('news-input');
   const list = $('news');
   const status = $('news-status');
   if (!form || !input || !list || !status) return;
 
-  const key = 'tt:news:q';
   let query = '';
-  try {
-    query = localStorage.getItem(key) || '';
-  } catch {
-    // ignore
-  }
-  input.value = query;
 
   const seen = new Set();
   let pollTimer = null;
@@ -657,7 +747,7 @@ function setupNews() {
   function reset(newQuery) {
     query = String(newQuery || '').trim();
     try {
-      localStorage.setItem(key, query);
+      localStorage.setItem(wsKey(getWorkspaceId(), 'news:q'), query);
     } catch {
       // ignore
     }
@@ -666,12 +756,195 @@ function setupNews() {
     start();
   }
 
+  function loadWorkspace(workspaceId) {
+    let q = '';
+    try {
+      q = localStorage.getItem(wsKey(workspaceId, 'news:q')) || '';
+    } catch {
+      q = '';
+    }
+    input.value = q;
+    reset(q);
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     reset(input.value);
   });
 
-  start();
+  loadWorkspace(getWorkspaceId());
+
+  return { loadWorkspace };
 }
 
-setupNews();
+function setupWorkspaces() {
+  const tabsEl = $('ws-tabs');
+  const addEl = $('ws-add');
+  if (!tabsEl || !addEl) return null;
+
+  const LIST_KEY = 'tt:workspaces';
+  const CURRENT_KEY = 'tt:workspace:current';
+
+  function loadList() {
+    try {
+      const raw = localStorage.getItem(LIST_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.filter((w) => w && typeof w.id === 'string' && typeof w.name === 'string');
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+
+  function saveList(list) {
+    try {
+      localStorage.setItem(LIST_KEY, JSON.stringify(list));
+    } catch {
+      // ignore
+    }
+  }
+
+  function getCurrentId() {
+    try {
+      return localStorage.getItem(CURRENT_KEY) || 'default';
+    } catch {
+      return 'default';
+    }
+  }
+
+  function setCurrentId(id) {
+    try {
+      localStorage.setItem(CURRENT_KEY, id);
+    } catch {
+      // ignore
+    }
+  }
+
+  let workspaces = loadList();
+  if (!workspaces || workspaces.length === 0) {
+    workspaces = [{ id: 'default', name: 'Main' }];
+    saveList(workspaces);
+    setCurrentId('default');
+  }
+
+  if (!workspaces.some((w) => w.id === getCurrentId())) {
+    setCurrentId(workspaces[0].id);
+  }
+
+  const listeners = [];
+
+  function notify(id) {
+    for (const fn of listeners) fn(id);
+  }
+
+  function render() {
+    const current = getCurrentId();
+    tabsEl.innerHTML = '';
+
+    for (const ws of workspaces) {
+      const tab = document.createElement('div');
+      tab.className = `ws-tab${ws.id === current ? ' is-active' : ''}`;
+      tab.dataset.wsId = ws.id;
+
+      const name = document.createElement('div');
+      name.className = 'ws-tab-name';
+      name.textContent = ws.name;
+
+      tab.appendChild(name);
+
+      if (workspaces.length > 1) {
+        const close = document.createElement('button');
+        close.className = 'ws-tab-close';
+        close.type = 'button';
+        close.textContent = '×';
+        close.title = 'Remove workspace';
+        close.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeWorkspace(ws.id);
+        });
+        tab.appendChild(close);
+      }
+
+      tab.addEventListener('click', () => switchTo(ws.id));
+      tab.addEventListener('dblclick', () => {
+        const next = prompt('Rename workspace', ws.name);
+        if (next && next.trim()) {
+          ws.name = next.trim();
+          saveList(workspaces);
+          render();
+        }
+      });
+
+      tabsEl.appendChild(tab);
+    }
+  }
+
+  function switchTo(id) {
+    if (!workspaces.some((w) => w.id === id)) return;
+    if (id === getCurrentId()) return;
+    setCurrentId(id);
+    render();
+    notify(id);
+  }
+
+  function addWorkspace(name) {
+    const id = newId('ws');
+    workspaces.push({ id, name });
+    saveList(workspaces);
+    setCurrentId(id);
+    render();
+    notify(id);
+  }
+
+  function removeWorkspace(id) {
+    if (workspaces.length <= 1) return;
+    const idx = workspaces.findIndex((w) => w.id === id);
+    if (idx === -1) return;
+    const wasCurrent = id === getCurrentId();
+    workspaces.splice(idx, 1);
+    saveList(workspaces);
+    if (wasCurrent) {
+      const next = workspaces[Math.max(0, idx - 1)]?.id || workspaces[0].id;
+      setCurrentId(next);
+      render();
+      notify(next);
+    } else {
+      render();
+    }
+  }
+
+  addEl.addEventListener('click', () => {
+    const base = `WS ${workspaces.length + 1}`;
+    const name = prompt('Workspace name', base);
+    if (!name) return;
+    addWorkspace(name.trim() || base);
+  });
+
+  render();
+
+  return {
+    getCurrentId,
+    onChange: (fn) => listeners.push(fn),
+    render,
+    switchTo
+  };
+}
+
+const workspaceManager = setupWorkspaces();
+const windowManager = setupWindows(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
+const chatManager = setupChat(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
+const newsManager = setupNews(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
+
+if (workspaceManager) {
+  workspaceManager.onChange((wsId) => {
+    windowManager?.applyWorkspaceToWindows?.(wsId);
+    chatManager?.loadWorkspace?.(wsId);
+    newsManager?.loadWorkspace?.(wsId);
+  });
+}
+
+setInterval(setClock, 1000);
+setClock();
+setupTerminal();
+setupChips();
