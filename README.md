@@ -55,6 +55,13 @@ npm run stream
 npm run stream:enrich
 npm run stream:detect
 npm run stream:stats
+
+# Truth Terminal UI (REPL)
+# NOTE: for SEC EDGAR commands, set:
+#   SEC_USER_AGENT="truth-terminal (email@example.com)"
+npm run tt
+npm run tt -- --eval "help"
+npm run tt -- --eval "edgar ticker AAPL"
 ```
 
 ## Architecture
