@@ -5,6 +5,13 @@ Truth Terminal is expanding into a general-purpose terminal for querying many so
 ## Commands
 
 ```bash
+# UI (Bloomberg-vibes)
+npm run ui                    # Local web UI at http://127.0.0.1:7777
+
+# CLI (REPL)
+npm run tt                    # Terminal REPL
+npm run tt -- --eval "help"   # One-shot command
+
 # Manipulation Detection
 npm run stream           # Collect trades (background)
 npm run stream:enrich    # Fetch wallet ages + market titles
@@ -20,9 +27,21 @@ pkill -f "tsx src/manipulation/stream"   # Stop stream
 tail -f data/stream.log                  # Watch stream
 ```
 
+## UI Notes
+
+- Windows: drag by header, resize from bottom-right corner, close with `×`, reopen/focus via `WIN`
+- Workspaces: bottom tab bar (add `+`, remove `×`, rename via double-click)
+- Agent chat: supports `/exec <command>` which emits tool events into the Intel window
+- News: uses GDELT via `/api/news` (free, best with longer queries; `ai` is mapped to “artificial intelligence”)
+
 ## Key Files
 
 ```
+web/                 # UI (HTML/CSS/JS)
+src/ui/server.ts     # UI server + API endpoints
+src/core/            # Command surface + parsing + typed outputs
+src/integrations/    # Source integrations (edgar, grok, ...)
+
 src/manipulation/
 ├── stream.ts    # Trade collector
 ├── enrich.ts    # Wallet + market enrichment
@@ -63,6 +82,11 @@ sqlite3 data/manipulation.db "
 ## API Endpoints
 
 ```bash
+# UI server
+curl -sS http://127.0.0.1:7777/api/health
+curl -sS -X POST http://127.0.0.1:7777/api/exec -H 'Content-Type: application/json' -d '{"line":"help"}'
+curl -sS http://127.0.0.1:7777/api/news?q=tesla
+
 # Recent trades
 curl "https://data-api.polymarket.com/trades?limit=10"
 

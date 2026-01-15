@@ -6,6 +6,28 @@ Truth Terminal is evolving from a Polymarket research tool into a general-purpos
 
 Today, that shows up as two major integrations (plus a shared storage + agents layer).
 
+### UI Layer (New)
+**Purpose:** Bloomberg-vibes local UI for interacting with Truth Terminal (windows, workspaces, agent chat, news, tool traces).
+
+**Location:**
+- UI server: `src/ui/server.ts`
+- Web UI: `web/`
+- Optional CLI REPL: `src/ui/terminal.ts`
+
+**Flow:**
+```
+Browser UI (web/) → local HTTP server → core commands/integrations → JSON outputs/events → UI windows
+```
+
+**Key endpoints:**
+- `POST /api/exec` - execute a command (same command surface as `tt` CLI)
+- `POST /api/chat` - agent chat + `/exec ...` tool events
+- `GET /api/news` - free news headlines via GDELT
+
+**UI concepts:**
+- **Windows**: draggable/resizable, focus highlights border, close/reopen via WIN menu
+- **Workspaces**: Excel-style tabs; each workspace persists window layout + visibility and some per-window state
+
 ### 1. Prediction Market Research (Polymarket)
 **Purpose:** Research prediction markets and produce structured cases for fast review.
 
@@ -71,6 +93,11 @@ Conceptually:
 - **Processors** enrich/cluster/detect patterns
 - **Agents (optional)** synthesize into structured outputs
 - **Stores** keep everything local + inspectable (SQLite + logs)
+
+In practice, the UI now talks to a single “command surface” (the same idea as `npm run tt` / `POST /api/exec`). As we add new sources, they should plug into this surface so:
+- the agent can request them,
+- the UI can render their outputs/events,
+- and “focus this window” becomes trivial (e.g., tool event targets `news`, `intel`, future `twitter` window).
 
 ## Databases
 

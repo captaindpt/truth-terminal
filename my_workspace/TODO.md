@@ -16,6 +16,10 @@
 - [ ] Decide how Mani’s separate Twitter tool plugs in (reuse code vs call as a service)
 - [ ] Add at least one financial markets integration (prices/volatility/newsflow)
 - [ ] Add at least one additional prediction market integration
+- [ ] UI: wire tool events → focus target windows (twitter/news/edgar/etc.) beyond `intel`
+- [ ] UI: show citations as first-class objects (click to open; click-to-focus source window)
+- [ ] UI: persist agent chat history per workspace (not just pinned prompt)
+- [ ] UI: add a dedicated Twitter window and route `/exec grok ...` events there
 
 ---
 

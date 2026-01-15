@@ -2,6 +2,77 @@
 
 Note: the project direction has expanded since this log — Truth Terminal is now intended to be a general-purpose “query + synthesis” terminal across many sources, not only Polymarket research.
 
+---
+
+# Session Log - Jan 14-15, 2026
+
+## What We Built
+
+### Bloomberg-vibes UI + Window System
+
+**New UI server:** `src/ui/server.ts`
+
+**New web UI:** `web/` (`index.html`, `styles.css`, `app.js`)
+
+UI features added:
+- Draggable + resizable windows
+- Focus highlighting (active window border turns green)
+- Close windows (`×`) and reopen/focus via `WIN` menu
+- Excel-style workspace tabs at the bottom (add/switch/remove; rename via double-click)
+- Per-workspace persisted UI state:
+  - Window geometry + visibility + focused window
+  - News query
+  - Chat session id (separate per workspace)
+
+### Agent Window Backbone (Chat)
+
+**Agent UI:** “Agent” window (chat style).
+
+**Backend:** `POST /api/chat`
+- If `ANTHROPIC_API_KEY` is present and valid, it replies via Anthropic.
+- If not (or if Anthropic errors), it returns a friendly fallback instead of 500.
+- Supports `/exec <command>` inside chat to run tools and emit “tool events”.
+
+Pinned prompt behavior:
+- The pinned prompt is now **dynamic**: as you scroll, it shows the most recent user prompt that corresponds to the visible section of the conversation (clamped to 2 lines with ellipsis).
+
+### Intel Window (Tool Trace Stub)
+
+**Intel UI:** shows tool events (currently from `/exec ...`).
+- Clicking an intel item focuses its target window (currently `intel`; intended to expand to `news`/future `twitter` window).
+
+### News Window (Free Headlines)
+
+**News UI:** “News” window.
+
+**Backend:** `GET /api/news?q=<query>&limit=<n>` using GDELT (free).
+- Headlines prepend at the top with timestamp + source.
+- Some very short queries are rejected by GDELT; `ai` is mapped to “artificial intelligence”.
+
+---
+
+## Commands
+
+```bash
+npm run ui    # Web UI at http://127.0.0.1:7777
+npm run tt    # CLI REPL (optional)
+```
+
+## Where to Look in Code
+
+- UI server + APIs: `src/ui/server.ts`
+- UI window manager + workspaces: `web/app.js`
+- UI styling: `web/styles.css`
+- UI layout/windows: `web/index.html`
+- Command surface: `src/core/`
+- Integrations: `src/integrations/` (EDGAR + Grok)
+
+## Current Limitations / Gotchas
+
+- SEC EDGAR calls can 403/rate-limit; `SEC_USER_AGENT` is required and you may need to slow down retries.
+- News via GDELT is “good enough free” but not premium wires; query quality matters.
+- Agent chat history is not persisted end-to-end yet; only per-workspace pinned prompt + session id are persisted.
+
 ## What We Built Tonight
 
 ### Manipulation Detection System
