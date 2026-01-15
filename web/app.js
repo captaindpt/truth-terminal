@@ -510,6 +510,7 @@ function appendChatMessage(role, text) {
   if (!chatEl) return;
   const row = document.createElement('div');
   row.className = `chat-msg chat-${role}`;
+  row.dataset.raw = String(text ?? '');
 
   const meta = document.createElement('div');
   meta.className = 'chat-meta';
@@ -580,12 +581,13 @@ function setupChat(getWorkspaceId) {
 
   const chatEl = $('chat');
   const pinEl = $('chat-pin');
+  if (!chatEl || !pinEl) return;
 
   function clearChatMessages() {
-    if (!chatEl) return;
-    const keep = pinEl ? [pinEl] : [];
+    const keep = [pinEl];
     chatEl.innerHTML = '';
     for (const n of keep) chatEl.appendChild(n);
+    setPinnedUserPrompt('');
   }
 
   function getChatSessionId(workspaceId) {
@@ -607,32 +609,55 @@ function setupChat(getWorkspaceId) {
     return id;
   }
 
-  function loadPinned(workspaceId) {
-    let last = '';
-    try {
-      last = localStorage.getItem(wsKey(workspaceId, 'chat:lastUserMessage')) || '';
-    } catch {
-      last = '';
-    }
-    setPinnedUserPrompt(last);
-  }
+  let raf = 0;
+  function updatePinnedFromScroll() {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const messages = Array.from(chatEl.querySelectorAll('.chat-msg'));
+      if (messages.length === 0) {
+        setPinnedUserPrompt('');
+        return;
+      }
 
-  function persistPinned(workspaceId, message) {
-    try {
-      localStorage.setItem(wsKey(workspaceId, 'chat:lastUserMessage'), message);
-    } catch {
-      // ignore
-    }
+      const chatRect = chatEl.getBoundingClientRect();
+      const pinHeight = pinEl.offsetHeight || 0;
+      const cutoff = chatRect.top + pinHeight + 2;
+
+      // Find the first message whose bottom is below the cutoff.
+      let topIndex = -1;
+      for (let i = 0; i < messages.length; i++) {
+        const r = messages[i].getBoundingClientRect();
+        if (r.bottom > cutoff) {
+          topIndex = i;
+          break;
+        }
+      }
+      if (topIndex === -1) topIndex = messages.length - 1;
+
+      // Find the nearest user message at or before topIndex.
+      let pinned = '';
+      for (let i = topIndex; i >= 0; i--) {
+        if (messages[i].classList.contains('chat-user')) {
+          pinned = messages[i].dataset.raw || '';
+          break;
+        }
+      }
+
+      setPinnedUserPrompt(pinned);
+    });
   }
 
   function loadWorkspace(workspaceId) {
     clearChatMessages();
-    loadPinned(workspaceId);
     appendChatMessage('assistant', `Workspace: ${workspaceId}`);
     appendChatMessage('assistant', 'Use /exec to run tools, e.g. "/exec grok <query>".');
+    updatePinnedFromScroll();
   }
 
   loadWorkspace(getWorkspaceId());
+
+  chatEl.addEventListener('scroll', updatePinnedFromScroll);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -641,8 +666,7 @@ function setupChat(getWorkspaceId) {
     input.value = '';
 
     appendChatMessage('user', message);
-    setPinnedUserPrompt(message);
-    persistPinned(getWorkspaceId(), message);
+    updatePinnedFromScroll();
 
     try {
       const resp = await chat(getChatSessionId(getWorkspaceId()), message);
@@ -651,8 +675,10 @@ function setupChat(getWorkspaceId) {
       if (resp?.events?.length && windowManager?.focusWindowById) {
         windowManager.focusWindowById('intel');
       }
+      updatePinnedFromScroll();
     } catch (err) {
       appendChatMessage('assistant', `Error: ${err instanceof Error ? err.message : String(err)}`);
+      updatePinnedFromScroll();
     }
   });
 
