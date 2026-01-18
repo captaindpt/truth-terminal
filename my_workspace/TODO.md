@@ -12,6 +12,11 @@ Truth Terminal is a **timing arbitrage system** for Polymarket. The edge isn't s
 
 The goal: **versatile, low-latency data retrieval** from maximum sources. Same pipeline feeds both UI and agent. Simple, flexible tools that let the agent search freely.
 
+### UI Audit Fixes (Jan 2026)
+- [x] News window auto-loads on open (default query `"polymarket"`)
+- [x] Tape / Feed window wired to live Polymarket trades (`/api/polymarket/feed`)
+- [ ] Re-test “weird query” error UX (confirm raw JSON never leaks to UI)
+
 ### Current Tools (Shipped)
 - [x] Tool registry + interface (`src/tools/`)
 - [x] Tool discovery/execution endpoints: `GET /api/tools`, `POST /api/tools/execute`

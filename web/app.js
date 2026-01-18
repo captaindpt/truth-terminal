@@ -14,6 +14,81 @@ function wsKey(workspaceId, suffix) {
   return `tt:ws:${workspaceId}:${suffix}`;
 }
 
+function onReady(fn) {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
+  else fn();
+}
+
+function isDebugEnabled() {
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('debug') === '1') return true;
+  } catch {
+    // ignore
+  }
+  try {
+    return localStorage.getItem('tt:debug') === '1';
+  } catch {
+    return false;
+  }
+}
+
+const TT_DEBUG = isDebugEnabled();
+function debugLog(...args) {
+  if (!TT_DEBUG) return;
+  try {
+    console.log('[tt]', ...args);
+  } catch {
+    // ignore
+  }
+}
+
+function tryParseJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function responseErrorMessage(res) {
+  const status = Number(res?.status || 0);
+  const raw = await res.text().catch(() => '');
+  const trimmed = String(raw || '').trim();
+  const parsed = trimmed ? tryParseJson(trimmed) : null;
+
+  if (parsed && typeof parsed === 'object') {
+    const err = typeof parsed.error === 'string' ? parsed.error : '';
+    const msg = typeof parsed.message === 'string' ? parsed.message : '';
+    if (err || msg) return String(err || msg).trim();
+  }
+
+  if (typeof parsed === 'string' && parsed.trim()) return parsed.trim();
+
+  if (trimmed) return trimmed;
+  return status ? `HTTP ${status}` : 'Request failed';
+}
+
+function userFacingError(err, fallback) {
+  const raw = err instanceof Error ? err.message : String(err || '');
+  const msg = String(raw || '').trim();
+  if (!msg) return String(fallback || 'Error');
+
+  if (msg.includes('{') && msg.includes('}')) {
+    // e.g. "HTTP 500: {\"ok\":false,\"error\":\"...\"}"
+    const start = msg.indexOf('{');
+    const jsonText = start >= 0 ? msg.slice(start).trim() : '';
+    const parsed = jsonText ? tryParseJson(jsonText) : null;
+    if (parsed && typeof parsed === 'object') {
+      const extracted = typeof parsed.error === 'string' ? parsed.error : typeof parsed.message === 'string' ? parsed.message : '';
+      if (extracted && extracted.trim()) return extracted.trim();
+    }
+  }
+
+  if (/failed to fetch/i.test(msg) || /networkerror/i.test(msg)) return 'Connection error';
+  return msg;
+}
+
 const WINDOW_SPECS = [
   { type: 'window', id: 'agent', title: 'Agent', chip: 'AGT', multi: false },
   { type: 'window', id: 'des', title: 'Description', chip: 'DES', multi: false },
@@ -111,8 +186,7 @@ async function exec(line) {
     body: JSON.stringify({ line })
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   return res.json();
 }
@@ -127,8 +201,7 @@ async function fetchNews(q, limit) {
     })
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'news error');
@@ -144,8 +217,7 @@ async function fetchPolymarketFeed(q, category, limit) {
 
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'polymarket feed error');
@@ -159,8 +231,7 @@ async function fetchConvictions(limit, status) {
 
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'convictions error');
@@ -174,8 +245,7 @@ async function upsertConviction(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'upsert conviction error');
@@ -185,8 +255,7 @@ async function upsertConviction(payload) {
 async function deleteConvictionById(id) {
   const res = await fetch(`/api/convictions/${encodeURIComponent(String(id))}`, { method: 'DELETE' });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json().catch(() => ({ ok: false }));
   if (!data?.ok) throw new Error(data?.error || 'delete conviction error');
@@ -200,8 +269,7 @@ async function fetchEvents(limit, marketId) {
 
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'events error');
@@ -215,8 +283,7 @@ async function createEvent(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'create event error');
@@ -226,8 +293,7 @@ async function createEvent(payload) {
 async function deleteEventById(id) {
   const res = await fetch(`/api/events/${encodeURIComponent(String(id))}`, { method: 'DELETE' });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json().catch(() => ({ ok: false }));
   if (!data?.ok) throw new Error(data?.error || 'delete event error');
@@ -240,8 +306,7 @@ async function fetchPositions(limit) {
 
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'positions error');
@@ -255,8 +320,7 @@ async function createPosition(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'create position error');
@@ -266,8 +330,7 @@ async function createPosition(payload) {
 async function deletePositionById(id) {
   const res = await fetch(`/api/positions/${encodeURIComponent(String(id))}`, { method: 'DELETE' });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json().catch(() => ({ ok: false }));
   if (!data?.ok) throw new Error(data?.error || 'delete position error');
@@ -279,8 +342,7 @@ async function fetchRules(limit) {
   url.searchParams.set('limit', String(limit || 500));
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'rules error');
@@ -294,8 +356,7 @@ async function createRule(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'create rule error');
@@ -309,8 +370,7 @@ async function updateRuleById(id, payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'update rule error');
@@ -320,8 +380,7 @@ async function updateRuleById(id, payload) {
 async function deleteRuleById(id) {
   const res = await fetch(`/api/rules/${encodeURIComponent(String(id))}`, { method: 'DELETE' });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json().catch(() => ({ ok: false }));
   if (!data?.ok) throw new Error(data?.error || 'delete rule error');
@@ -334,8 +393,7 @@ async function fetchAlerts(limit) {
   url.searchParams.set('limit', String(limit || 50));
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'alerts error');
@@ -349,8 +407,7 @@ async function markAlertsSeen(ids) {
     body: JSON.stringify({ ids })
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json().catch(() => ({ ok: false }));
   if (!data?.ok) throw new Error(data?.error || 'mark seen error');
@@ -363,8 +420,7 @@ async function fetchExecutionState() {
   url.searchParams.set('limitFills', '120');
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'execution state error');
@@ -378,8 +434,7 @@ async function placeExecutionOrder(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'place order error');
@@ -393,8 +448,7 @@ async function fillExecutionOrder(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'fill error');
@@ -408,8 +462,7 @@ async function cancelExecutionOrder(payload) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'cancel error');
@@ -421,8 +474,7 @@ async function fetchStockQuote(symbol) {
   url.searchParams.set('symbol', String(symbol || '').trim());
   const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'quote error');
@@ -436,8 +488,7 @@ async function chat(sessionId, message) {
     body: JSON.stringify({ sessionId, message })
   });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   return res.json();
 }
@@ -1133,7 +1184,7 @@ function setupTerminal() {
         const outputs = await exec(line);
         appendTerminal(renderOutputs(outputs));
       } catch (err) {
-        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
       }
     });
   }
@@ -1390,7 +1441,7 @@ function setupChat(getWorkspaceId) {
       }
       updatePinnedFromScroll();
     } catch (err) {
-      appendChatMessage('assistant', `Error: ${err instanceof Error ? err.message : String(err)}`);
+      appendChatMessage('assistant', `Error: ${userFacingError(err, 'Error')}`);
       updatePinnedFromScroll();
     }
   });
@@ -1606,10 +1657,21 @@ function setupNews(getWorkspaceId) {
   const status = $('news-status');
   if (!form || !input || !list || !status) return;
 
+  const DEFAULT_QUERY = 'polymarket';
   let query = '';
 
   const seen = new Set();
   let pollTimer = null;
+
+  status.textContent = 'init';
+  debugLog('news:init', { hasForm: !!form, hasInput: !!input, hasList: !!list, hasStatus: !!status });
+
+  function renderNote(text) {
+    const row = document.createElement('div');
+    row.className = 'news-item news-note';
+    row.textContent = String(text || '').trim() || '—';
+    return row;
+  }
 
   function renderItem(item) {
     const row = document.createElement('div');
@@ -1673,6 +1735,13 @@ function setupNews(getWorkspaceId) {
       const items = await fetchNews(query, 30);
       status.textContent = `ok ${items.length}`;
 
+      if (!items.length && !list.childNodes.length) {
+        list.appendChild(renderNote(`No headlines found${query ? ` for "${query}"` : ''}`));
+        return;
+      }
+      const note = list.querySelector('.news-note');
+      if (note && items.length) note.remove();
+
       let added = 0;
       for (const item of items) {
         const dedupeKey = item.url;
@@ -1688,11 +1757,9 @@ function setupNews(getWorkspaceId) {
       }
     } catch (err) {
       status.textContent = 'err';
-      const message = err instanceof Error ? err.message : String(err);
-      const row = document.createElement('div');
-      row.className = 'news-item';
-      row.textContent = `Error: ${message}`;
-      list.prepend(row);
+      const message = userFacingError(err, 'News error');
+      if (!list.childNodes.length) list.appendChild(renderNote(message));
+      else list.prepend(renderNote(message));
     }
   }
 
@@ -1703,7 +1770,9 @@ function setupNews(getWorkspaceId) {
   }
 
   function reset(newQuery) {
-    query = String(newQuery || '').trim();
+    const next = String(newQuery || '').trim();
+    query = next || DEFAULT_QUERY;
+    input.value = query;
     try {
       localStorage.setItem(wsKey(getWorkspaceId(), 'news:q'), query);
     } catch {
@@ -1721,8 +1790,11 @@ function setupNews(getWorkspaceId) {
     } catch {
       q = '';
     }
-    input.value = q;
-    reset(q);
+    const trimmed = String(q || '').trim();
+    // Guard against stored "too short" queries (e.g. "ai") which would error on load.
+    const next = trimmed && trimmed.length >= 3 ? trimmed : DEFAULT_QUERY;
+    input.value = next;
+    reset(next);
   }
 
   form.addEventListener('submit', (e) => {
@@ -1759,6 +1831,143 @@ function setupNews(getWorkspaceId) {
   }
 
   return { loadWorkspace, applyToolEvent };
+}
+
+function setupTape() {
+  const tbody = $('tape');
+  const status = $('tape-status');
+  if (!tbody) return;
+
+  if (status) status.textContent = 'init';
+  debugLog('tape:init', { hasTbody: !!tbody, hasStatus: !!status });
+
+  const seen = new Set();
+  const seenOrder = [];
+  let pollTimer = null;
+
+  // Clear placeholder row from HTML.
+  tbody.innerHTML = '';
+
+  function fmtSize(size) {
+    const n = Number(size);
+    if (!Number.isFinite(n)) return '—';
+    return `$${n.toFixed(0)}`;
+  }
+
+  function fmtPrice(price) {
+    const n = Number(price);
+    if (!Number.isFinite(n)) return '—';
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
+  function renderNoteRow(text) {
+    const tr = document.createElement('tr');
+    tr.dataset.kind = 'note';
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.className = 'tape-note';
+    td.textContent = String(text || '').trim() || '—';
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function renderTradeRow(item) {
+    const tr = document.createElement('tr');
+    tr.dataset.id = String(item?.id || '');
+
+    const tdTime = document.createElement('td');
+    tdTime.textContent = formatTimeMs(item.timestamp);
+
+    const tdMarket = document.createElement('td');
+    tdMarket.className = 'tape-market';
+    const marketText = String(item.question || item.marketId || '').trim() || '—';
+    tdMarket.title = marketText;
+    tdMarket.textContent = marketText;
+
+    const tdSide = document.createElement('td');
+    const side = String(item.side || '').toUpperCase();
+    const outcome = String(item.outcome || '').toUpperCase();
+    const sideEl = document.createElement('span');
+    sideEl.className = `tape-side ${side === 'BUY' ? 'is-buy' : side === 'SELL' ? 'is-sell' : ''}`.trim();
+    sideEl.textContent = side || '—';
+    tdSide.appendChild(sideEl);
+    if (outcome) {
+      const sep = document.createTextNode(' ');
+      const outEl = document.createElement('span');
+      outEl.className = 'tape-outcome';
+      outEl.textContent = outcome;
+      tdSide.appendChild(sep);
+      tdSide.appendChild(outEl);
+    }
+
+    const tdSize = document.createElement('td');
+    tdSize.className = 'tape-num';
+    tdSize.textContent = fmtSize(item.size);
+
+    const tdPrice = document.createElement('td');
+    tdPrice.className = 'tape-num';
+    tdPrice.textContent = fmtPrice(item.price);
+
+    tr.appendChild(tdTime);
+    tr.appendChild(tdMarket);
+    tr.appendChild(tdSide);
+    tr.appendChild(tdSize);
+    tr.appendChild(tdPrice);
+    return tr;
+  }
+
+  function remember(id) {
+    if (!id) return;
+    if (seen.has(id)) return;
+    seen.add(id);
+    seenOrder.push(id);
+    while (seenOrder.length > 2000) {
+      const drop = seenOrder.shift();
+      if (drop) seen.delete(drop);
+    }
+  }
+
+  async function poll() {
+    try {
+      if (status) status.textContent = 'loading';
+      const data = await fetchPolymarketFeed('', '', 80);
+      const items = Array.isArray(data?.items) ? data.items : [];
+      if (status) status.textContent = `ok ${items.length}`;
+
+      const note = tbody.querySelector('tr[data-kind="note"]');
+      if (note && items.length) note.remove();
+
+      if (!items.length && !tbody.childNodes.length) {
+        tbody.appendChild(renderNoteRow('No trades yet'));
+        return;
+      }
+
+      // `items` is newest→oldest; prepend in reverse so newest ends up on top.
+      for (let i = items.length - 1; i >= 0; i--) {
+        const item = items[i];
+        const id = String(item?.id || '').trim();
+        if (!id || seen.has(id)) continue;
+        remember(id);
+        tbody.prepend(renderTradeRow(item));
+      }
+
+      while (tbody.childNodes.length > 50) tbody.removeChild(tbody.lastChild);
+    } catch (err) {
+      if (status) status.textContent = 'err';
+      const message = userFacingError(err, 'Feed error');
+      if (!tbody.childNodes.length) tbody.appendChild(renderNoteRow(message));
+      else tbody.prepend(renderNoteRow(message));
+    }
+  }
+
+  poll();
+  pollTimer = setInterval(poll, 3000);
+  return {
+    stop: () => {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  };
 }
 
 function setupPolymarket(getWorkspaceId) {
@@ -1884,10 +2093,10 @@ function setupPolymarket(getWorkspaceId) {
       }
     } catch (err) {
       status.textContent = 'err';
-      const message = err instanceof Error ? err.message : String(err);
+      const message = userFacingError(err, 'Feed error');
       const row = document.createElement('div');
       row.className = 'poly-item';
-      row.textContent = `Error: ${message}`;
+      row.textContent = message;
       list.prepend(row);
     }
   }
@@ -2024,7 +2233,7 @@ function setupWatchlist(getWorkspaceId) {
         await reload();
       } catch (err) {
         statusEl.textContent = 'err';
-        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
       }
     });
 
@@ -2071,7 +2280,7 @@ function setupWatchlist(getWorkspaceId) {
       list.innerHTML = '';
       const row = document.createElement('div');
       row.className = 'wl-item';
-      row.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
+      row.textContent = userFacingError(err, 'Error');
       list.appendChild(row);
     }
   }
@@ -2091,7 +2300,7 @@ function setupWatchlist(getWorkspaceId) {
       await reload();
     } catch (err) {
       statusEl.textContent = 'err';
-      appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
     }
   });
 
@@ -2187,7 +2396,7 @@ function setupCalendar(getWorkspaceId) {
         await reload();
       } catch (err) {
         statusEl.textContent = 'err';
-        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
       }
     });
 
@@ -2211,7 +2420,7 @@ function setupCalendar(getWorkspaceId) {
       list.innerHTML = '';
       const row = document.createElement('div');
       row.className = 'cal-item';
-      row.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
+      row.textContent = userFacingError(err, 'Error');
       list.appendChild(row);
     }
   }
@@ -2245,7 +2454,7 @@ function setupCalendar(getWorkspaceId) {
       await reload();
     } catch (err) {
       statusEl.textContent = 'err';
-      appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
     }
   });
 
@@ -2399,7 +2608,7 @@ function setupPortfolio(getWorkspaceId) {
         await reload();
       } catch (err) {
         statusEl.textContent = 'err';
-        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
       }
     });
 
@@ -2440,7 +2649,7 @@ function setupPortfolio(getWorkspaceId) {
       list.innerHTML = '';
       const row = document.createElement('div');
       row.className = 'pf-item';
-      row.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
+      row.textContent = userFacingError(err, 'Error');
       list.appendChild(row);
     }
   }
@@ -2465,7 +2674,7 @@ function setupPortfolio(getWorkspaceId) {
       await reload();
     } catch (err) {
       statusEl.textContent = 'err';
-      appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
     }
   });
 
@@ -2584,7 +2793,7 @@ function setupRules(getWorkspaceId) {
         await reload();
       } catch (err) {
         statusEl.textContent = 'err';
-        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
       }
     });
 
@@ -2602,7 +2811,7 @@ function setupRules(getWorkspaceId) {
         await reload();
       } catch (err) {
         statusEl.textContent = 'err';
-        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
       }
     });
 
@@ -2620,7 +2829,7 @@ function setupRules(getWorkspaceId) {
         await reload();
       } catch (err) {
         statusEl.textContent = 'err';
-        appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
       }
     });
 
@@ -2657,7 +2866,7 @@ function setupRules(getWorkspaceId) {
       list.innerHTML = '';
       const row = document.createElement('div');
       row.className = 'rules-item';
-      row.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
+      row.textContent = userFacingError(err, 'Error');
       list.appendChild(row);
     }
   }
@@ -2687,7 +2896,7 @@ function setupRules(getWorkspaceId) {
       await reload();
     } catch (err) {
       statusEl.textContent = 'err';
-      appendTerminal(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      appendTerminal(`Error: ${userFacingError(err, 'Error')}`);
     }
   });
 
@@ -2789,8 +2998,7 @@ async function fetchBinanceSymbols() {
   const url = new URL('/api/orderbook/binance/symbols', window.location.origin);
   const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'binance symbols error');
@@ -2804,8 +3012,7 @@ async function fetchPolymarketClobBook(conditionId, outcome, depth) {
   url.searchParams.set('depth', String(depth || 20));
   const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
   if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status}${t ? `: ${t}` : ''}`);
+    throw new Error(await responseErrorMessage(res));
   }
   const data = await res.json();
   if (!data?.ok) throw new Error(data?.error || 'polymarket book error');
@@ -3671,7 +3878,7 @@ function setupExecution() {
       }
     } catch (err) {
       status.textContent = 'err';
-      metricsEl.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
+      metricsEl.textContent = `Error: ${userFacingError(err, 'Error')}`;
     }
   }
 
@@ -3882,45 +4089,75 @@ function setupWorkspaces() {
   };
 }
 
-const workspaceManager = setupWorkspaces();
-const windowManager = setupWindows(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const chatManager = setupChat(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const desManager = setupDescription(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const newsManager = setupNews(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const polyManager = setupPolymarket(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const watchlistManager = setupWatchlist(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const calendarManager = setupCalendar(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const portfolioManager = setupPortfolio(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-const rulesManager = setupRules(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-setupOrderBookManager(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
-setupExecution();
-setupAlerts(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default'));
+let workspaceManager = null;
+let windowManager = null;
+let chatManager = null;
+let desManager = null;
+let newsManager = null;
+let polyManager = null;
+let watchlistManager = null;
+let calendarManager = null;
+let portfolioManager = null;
+let rulesManager = null;
 
-// Route tool events into their target windows (keeping Intel as the global trace).
-document.addEventListener('tt:tool-event', (e) => {
-  const ev = e?.detail;
-  const target = String(ev?.targetWindow || '').trim();
-  if (!target) return;
+onReady(() => {
+  debugLog('app:init:start');
 
-  if (target === 'news') newsManager?.applyToolEvent?.(ev);
-  if (target === 'poly') polyManager?.applyToolEvent?.(ev);
-});
+  function safeInit(name, fn) {
+    try {
+      const value = fn();
+      debugLog('app:init:ok', name);
+      return value;
+    } catch (err) {
+      // Don’t let one broken window prevent the rest of the workstation from booting.
+      console.error(`[tt] init failed: ${name}`, err);
+      debugLog('app:init:err', name, userFacingError(err, 'Error'));
+      return null;
+    }
+  }
 
-if (workspaceManager) {
-  workspaceManager.onChange((wsId) => {
-    windowManager?.applyWorkspaceToWindows?.(wsId);
-    chatManager?.loadWorkspace?.(wsId);
-    desManager?.loadWorkspace?.(wsId);
-    newsManager?.loadWorkspace?.(wsId);
-    polyManager?.loadWorkspace?.(wsId);
-    watchlistManager?.loadWorkspace?.(wsId);
-    calendarManager?.loadWorkspace?.(wsId);
-    portfolioManager?.loadWorkspace?.(wsId);
-    rulesManager?.loadWorkspace?.(wsId);
+  workspaceManager = safeInit('workspaces', () => setupWorkspaces());
+  windowManager = safeInit('windows', () => setupWindows(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  chatManager = safeInit('chat', () => setupChat(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  desManager = safeInit('description', () => setupDescription(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  newsManager = safeInit('news', () => setupNews(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  safeInit('tape', () => setupTape());
+  polyManager = safeInit('polymarket', () => setupPolymarket(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  watchlistManager = safeInit('watchlist', () => setupWatchlist(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  calendarManager = safeInit('calendar', () => setupCalendar(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  portfolioManager = safeInit('portfolio', () => setupPortfolio(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  rulesManager = safeInit('rules', () => setupRules(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  safeInit('orderbook', () => setupOrderBookManager(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+  safeInit('execution', () => setupExecution());
+  safeInit('alerts', () => setupAlerts(() => (workspaceManager ? workspaceManager.getCurrentId() : 'default')));
+
+  // Route tool events into their target windows (keeping Intel as the global trace).
+  document.addEventListener('tt:tool-event', (e) => {
+    const ev = e?.detail;
+    const target = String(ev?.targetWindow || '').trim();
+    if (!target) return;
+
+    if (target === 'news') newsManager?.applyToolEvent?.(ev);
+    if (target === 'poly') polyManager?.applyToolEvent?.(ev);
   });
-}
 
-setInterval(setClock, 1000);
-setClock();
-setupTerminal();
-setupChips();
+  if (workspaceManager) {
+    workspaceManager.onChange((wsId) => {
+      windowManager?.applyWorkspaceToWindows?.(wsId);
+      chatManager?.loadWorkspace?.(wsId);
+      desManager?.loadWorkspace?.(wsId);
+      newsManager?.loadWorkspace?.(wsId);
+      polyManager?.loadWorkspace?.(wsId);
+      watchlistManager?.loadWorkspace?.(wsId);
+      calendarManager?.loadWorkspace?.(wsId);
+      portfolioManager?.loadWorkspace?.(wsId);
+      rulesManager?.loadWorkspace?.(wsId);
+    });
+  }
+
+  setInterval(setClock, 1000);
+  setClock();
+  setupTerminal();
+  setupChips();
+  debugLog('app:init:done');
+});

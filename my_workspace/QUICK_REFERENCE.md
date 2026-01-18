@@ -41,8 +41,10 @@ tail -f data/stream.log                  # Watch stream
 - **Windows**: drag header, resize corners, close `×` to remove from working windows; reopen via `WIN` → `Launch`
 - **Workspaces**: bottom tabs (add `+` at the far right, remove `×`, rename double-click)
 - **Agent chat**: can call tools automatically; tool calls always appear in Intel and also route to their target windows when possible
-- **News**: `gdelt_news` powers the window (free; rate-limited; longer queries work better). `/api/news` exists for legacy/direct reads.
+- **News**: auto-loads on open (default query `"polymarket"`). Powered by `gdelt_news` (free; rate-limited; longer queries work better). `/api/news` exists for legacy/direct reads.
+- **Tape / Feed**: live Polymarket trades (polls `/api/polymarket/feed`).
 - **Order Book**: `WIN` → `Launch` (each launch creates a new book window) or `/exec book BTC/USDT binance`
+- **Debug**: add `?debug=1` to the URL to log UI init events to the console.
 
 ## Tools (Agent-Callable)
 

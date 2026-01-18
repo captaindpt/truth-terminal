@@ -203,6 +203,7 @@ Browser UI (web/) → local HTTP server → core commands + tool registry → to
 
 ### What Works Today
 - **Window shell**: drag/resize, focus model, WIN menu, workspace tabs all solid
+- **News + Tape**: News auto-loads on open (default `"polymarket"`); Tape shows live Polymarket trades
 - **Agent chat can call tools**: tool registry + Anthropic tool-calling emits tool events
 - **Decision workflow v1**: watchlist (convictions), calendar (events), rules (alerts), portfolio (manual positions) persisted in SQLite
 - **Research agent**: Opus 4.5 with extended thinking + tools produces real cases

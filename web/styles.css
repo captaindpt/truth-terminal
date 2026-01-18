@@ -1053,6 +1053,43 @@ code {
   color: var(--muted);
 }
 
+.news-note {
+  color: var(--muted);
+}
+
+.tape-market {
+  max-width: 720px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tape-side {
+  font-weight: 600;
+}
+
+.tape-side.is-buy {
+  color: var(--accent-2);
+}
+
+.tape-side.is-sell {
+  color: var(--danger);
+}
+
+.tape-outcome {
+  color: var(--muted);
+}
+
+.tape-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tape-note {
+  color: var(--muted);
+  font-style: italic;
+}
+
 .window-resize {
   position: absolute;
   right: 1px;

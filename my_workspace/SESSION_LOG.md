@@ -1,3 +1,49 @@
+# Session Log - Jan 18, 2026 (UI Audit Fixes: News + Tape + Errors)
+
+## Orchestration Model
+
+New workflow for UI development using multi-agent collaboration:
+
+| Role | Responsibility |
+|------|----------------|
+| **Mani** | Vision, final decisions, UX taste |
+| **Opus** | Architecture, orchestration, prompt engineering |
+| **Codex 5.2** | Implementation (TypeScript, CSS, DOM) |
+| **Haiku (browser)** | Automated UI testing + visual QA |
+
+**Flow:**
+1. Opus writes spec/prompt based on requirements
+2. Mani passes prompt to Codex for implementation
+3. Haiku tests in browser and reports back
+4. Review findings, iterate
+
+This session validated the loop: Haiku caught stale cache issue, Codex fixed it, Haiku re-verified.
+
+## What Shipped
+
+- **News window** now auto-loads headlines on open using default query `"polymarket"` (no manual input needed).
+- **Tape / Feed window** now shows live Polymarket trades (polls `/api/polymarket/feed` ~every 3s), with BUY green / SELL red.
+- **Error UX** improved across UI fetch paths: server JSON errors are parsed into user-friendly messages (still needs focused re-test on "weird queries").
+
+## Files Touched
+
+- UI: `web/app.js`, `web/index.html`, `web/styles.css`
+- UI server: `src/ui/server.ts` (serve correct `web/` when running from `dist/`)
+
+## Quick Verify
+
+```bash
+curl -sS http://127.0.0.1:7777/api/health
+curl -sS "http://127.0.0.1:7777/api/polymarket/feed?limit=3"
+```
+
+Browser:
+- Load `http://127.0.0.1:7777` → News should populate immediately.
+- Tape should fill with trades and keep updating.
+- Optional debug logs: `http://127.0.0.1:7777/?debug=1` (console shows `[tt] ...` init events).
+
+---
+
 # Session Log - Jan 17, 2026 (Code Review + Data Pipeline)
 
 ## What Got Built

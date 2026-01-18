@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -750,7 +751,9 @@ async function readJson(req: any): Promise<any> {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const WEB_ROOT = join(__dirname, '..', '..', 'web');
+// Prefer serving the repo's `web/` folder when available, even when running the compiled server from `dist/`.
+// Fallback to the legacy relative path for cases where `process.cwd()` isn't the repo root (e.g. packaged deploys).
+const WEB_ROOT = existsSync(join(process.cwd(), 'web')) ? join(process.cwd(), 'web') : join(__dirname, '..', '..', 'web');
 
 async function serveStatic(req: any, res: any, pathname: string): Promise<void> {
   const relPath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
