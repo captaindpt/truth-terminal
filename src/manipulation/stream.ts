@@ -68,6 +68,8 @@ function parseTradeFromAPI(event: DataAPITrade): StoredTrade {
     outcome: event.outcome || 'YES',
     size: event.size || 0,
     price: event.price || 0,
+    title: event.title || '',
+    slug: event.slug || '',
   };
 }
 

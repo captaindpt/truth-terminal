@@ -13,13 +13,7 @@
           <span class="hint">Backtick (`) to open terminal</span>
         </div>
         <div class="topbar-center">
-          <div class="chips">
-            <button class="chip is-active" data-cmd="DES" title="Description">DES</button>
-            <button class="chip" data-cmd="CF" title="Filings">CF</button>
-            <button class="chip" data-cmd="G" title="Chart">G</button>
-            <button class="chip" data-cmd="N" title="News">N</button>
-            <button class="chip" data-cmd="OPT" title="Options">OPT</button>
-          </div>
+          <div class="chips" id="working-windows" aria-label="Working windows"></div>
         </div>
         <div class="topbar-right">
           <div class="status">
@@ -35,40 +29,52 @@
           <div class="window-header" data-drag-handle>
             <div class="window-title">Description</div>
             <div class="window-meta">
-              <span class="pill">AAPL</span>
-              <span class="pill">US</span>
+              <span class="pill" id="des-symbol-pill">AAPL</span>
+              <span class="pill" id="des-exchange-pill">US</span>
               <span class="pill">DES</span>
             </div>
             <div class="window-actions">
               <button class="window-btn window-close" type="button" title="Close">×</button>
             </div>
           </div>
-          <div class="window-body">
-            <div class="placeholder">
-              <div class="placeholder-title">Panel skeleton</div>
-              <div class="placeholder-text">
-                This is a layout stub. Next we’ll replace these blocks with real modules (DES/CF/N/G/OPT).
-              </div>
-            </div>
-            <div class="two-col">
-              <div class="card">
+          <div class="window-body window-body-des">
+            <form class="des-form" id="des-form">
+              <span class="prompt">sym&gt;</span>
+              <input id="des-symbol" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="AAPL" />
+              <select id="des-tf" class="terminal-input" title="Timeframe">
+                <option value="1">1m</option>
+                <option value="5">5m</option>
+                <option value="30">30m</option>
+                <option value="D">1D</option>
+              </select>
+              <button class="btn" type="submit">Set</button>
+              <span class="pill" id="des-status">idle</span>
+            </form>
+            <div class="des-grid">
+              <div class="card des-snapshot">
                 <div class="card-title">Snapshot</div>
                 <div class="kv">
-                  <div class="kv-row"><span>Exchange</span><span>—</span></div>
-                  <div class="kv-row"><span>Currency</span><span>—</span></div>
-                  <div class="kv-row"><span>Market Cap</span><span>—</span></div>
+                  <div class="kv-row"><span>Name</span><span id="des-name">—</span></div>
+                  <div class="kv-row"><span>Price</span><span id="des-price">—</span></div>
+                  <div class="kv-row"><span>Change</span><span id="des-change">—</span></div>
+                  <div class="kv-row"><span>Exchange</span><span id="des-exchange">—</span></div>
+                  <div class="kv-row"><span>Currency</span><span id="des-currency">—</span></div>
+                  <div class="kv-row"><span>Market Cap</span><span id="des-mcap">—</span></div>
                 </div>
               </div>
-              <div class="card">
+              <div class="card des-chart-card">
                 <div class="card-title">Chart</div>
-                <div class="chart-skeleton"></div>
+                <div class="tv-chart" id="des-tv" aria-label="TradingView Chart"></div>
               </div>
             </div>
           </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
 
-        <section class="window" data-window="opt" data-title="Option Chain" data-x="820" data-y="12" data-w="380" data-h="560" aria-label="Option Chain Window">
+        <section class="window is-hidden" data-window="opt" data-title="Option Chain" data-x="820" data-y="12" data-w="380" data-h="560" aria-label="Option Chain Window">
           <div class="window-header" data-drag-handle>
             <div class="window-title">Option Chain</div>
             <div class="window-meta">
@@ -98,6 +104,157 @@
               </tbody>
             </table>
           </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
+        <section class="window" data-window="watchlist" data-title="Watchlist" data-x="820" data-y="12" data-w="380" data-h="280" aria-label="Watchlist Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Watchlist</div>
+            <div class="window-meta">
+              <span class="pill">WL</span>
+              <span class="pill" id="wl-status">idle</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-watchlist">
+            <form class="wl-form" id="wl-form">
+              <span class="prompt">id&gt;</span>
+              <input id="wl-external-id" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Polymarket conditionId" />
+              <span class="prompt">p&gt;</span>
+              <input id="wl-my-prob" class="terminal-input" inputmode="decimal" placeholder="my % (e.g. 72)" />
+              <select id="wl-status-sel" class="terminal-input" title="Status">
+                <option value="watching">watching</option>
+                <option value="entered">entered</option>
+                <option value="exited">exited</option>
+              </select>
+              <button class="btn" type="submit">Save</button>
+            </form>
+            <form class="wl-form2" id="wl-form2">
+              <span class="prompt">th&gt;</span>
+              <input id="wl-entry-thesis" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Entry thesis (short)" />
+              <button class="btn" type="button" id="wl-refresh">Refresh</button>
+            </form>
+            <div class="wl-list" id="wl-list" aria-label="Watchlist items"></div>
+          </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
+        <section class="window" data-window="calendar" data-title="Calendar" data-x="820" data-y="300" data-w="380" data-h="280" aria-label="Calendar Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Calendar</div>
+            <div class="window-meta">
+              <span class="pill">CAL</span>
+              <span class="pill" id="cal-status">idle</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-calendar">
+            <form class="cal-form" id="cal-form">
+              <span class="prompt">m&gt;</span>
+              <select id="cal-market" class="terminal-input" title="Market">
+                <option value="">(global)</option>
+              </select>
+              <input id="cal-title" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Event title" />
+              <input id="cal-date" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="YYYY-MM-DD or unknown" />
+              <select id="cal-confidence" class="terminal-input" title="Date confidence">
+                <option value="exact">exact</option>
+                <option value="approximate">approx</option>
+                <option value="unknown">unknown</option>
+              </select>
+              <button class="btn" type="submit">Add</button>
+            </form>
+            <form class="cal-form2" id="cal-form2">
+              <span class="prompt">src&gt;</span>
+              <input id="cal-source" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Source URL (optional)" />
+              <span class="prompt">imp&gt;</span>
+              <input id="cal-impact" class="terminal-input" autocomplete="off" spellcheck="false" placeholder='Impact hypothesis (e.g. "If X, move to Y")' />
+              <button class="btn" type="button" id="cal-refresh">Refresh</button>
+            </form>
+            <div class="cal-list" id="cal-list" aria-label="Events"></div>
+          </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
+        <section class="window is-hidden" data-window="portfolio" data-title="Portfolio" data-x="410" data-y="520" data-w="520" data-h="360" aria-label="Portfolio Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Portfolio</div>
+            <div class="window-meta">
+              <span class="pill">PF</span>
+              <span class="pill" id="pf-status">idle</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-portfolio">
+            <form class="pf-form" id="pf-form">
+              <span class="prompt">m&gt;</span>
+              <select id="pf-market" class="terminal-input" title="Market">
+                <option value="">Select market</option>
+              </select>
+              <select id="pf-outcome" class="terminal-input" title="Outcome">
+                <option value="YES" selected>YES</option>
+                <option value="NO">NO</option>
+              </select>
+              <input id="pf-shares" class="terminal-input" inputmode="decimal" placeholder="shares" />
+              <input id="pf-avg" class="terminal-input" inputmode="decimal" placeholder="avg (e.g. 0.62 or 62)" />
+              <button class="btn" type="submit">Add</button>
+              <button class="btn" type="button" id="pf-refresh">Refresh</button>
+            </form>
+            <div class="pf-totals" id="pf-totals">—</div>
+            <div class="pf-list" id="pf-list" aria-label="Positions"></div>
+          </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
+        <section class="window is-hidden" data-window="rules" data-title="Rules" data-x="12" data-y="300" data-w="520" data-h="360" aria-label="Rules Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Rules</div>
+            <div class="window-meta">
+              <span class="pill">RULE</span>
+              <span class="pill" id="rules-status">idle</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-rules">
+            <form class="rules-form" id="rules-form">
+              <span class="prompt">m&gt;</span>
+              <select id="rules-market" class="terminal-input" title="Market">
+                <option value="">Select market</option>
+              </select>
+              <select id="rules-type" class="terminal-input" title="Type">
+                <option value="price_below" selected>price ≤</option>
+                <option value="price_above">price ≥</option>
+              </select>
+              <input id="rules-threshold" class="terminal-input" inputmode="decimal" placeholder="price % (e.g. 7)" />
+              <input id="rules-min-my" class="terminal-input" inputmode="decimal" placeholder="min my % (opt)" />
+              <button class="btn" type="submit">Add</button>
+              <button class="btn" type="button" id="rules-refresh">Refresh</button>
+            </form>
+            <div class="rules-help" id="rules-help">Alerts-only: triggers once then marks as triggered.</div>
+            <div class="rules-list" id="rules-list" aria-label="Rules"></div>
+          </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
 
@@ -121,6 +278,61 @@
               <button class="btn" type="submit">Send</button>
             </form>
           </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
+        <section class="window" data-window="exec" data-title="Execution" data-x="520" data-y="120" data-w="600" data-h="420" aria-label="Execution Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Execution</div>
+            <div class="window-meta">
+              <span class="pill">EXEC</span>
+              <span class="pill" id="exec-status">idle</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-exec">
+            <form class="exec-form" id="exec-form">
+              <span class="prompt">ord&gt;</span>
+              <input id="exec-symbol" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="AAPL" />
+              <select id="exec-side" class="terminal-input" title="Side">
+                <option value="BUY">BUY</option>
+                <option value="SELL">SELL</option>
+              </select>
+              <input id="exec-qty" class="terminal-input" inputmode="decimal" placeholder="qty" />
+              <select id="exec-type" class="terminal-input" title="Type">
+                <option value="MARKET">MKT</option>
+                <option value="LIMIT">LMT</option>
+              </select>
+              <input id="exec-limit" class="terminal-input" inputmode="decimal" placeholder="limit (opt)" />
+              <input id="exec-exp" class="terminal-input" inputmode="decimal" placeholder="expected (opt)" />
+              <button class="btn" type="submit">Place</button>
+            </form>
+
+            <div class="exec-metrics" id="exec-metrics">—</div>
+
+            <div class="exec-grid">
+              <div class="card exec-card">
+                <div class="card-title">Pending Orders</div>
+                <div class="exec-list" id="exec-pending"></div>
+              </div>
+              <div class="card exec-card">
+                <div class="card-title">Fill Confirmations</div>
+                <div class="exec-list" id="exec-fills"></div>
+              </div>
+              <div class="card exec-card">
+                <div class="card-title">Order History</div>
+                <div class="exec-list" id="exec-history"></div>
+              </div>
+            </div>
+          </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
 
@@ -142,6 +354,9 @@
               </div>
             </div>
           </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
 
@@ -164,6 +379,38 @@
             </form>
             <div class="news" id="news"></div>
           </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
+          <div class="window-resize" data-resize-handle title="Resize"></div>
+        </section>
+
+        <section class="window" data-window="poly" data-title="Polymarket" data-x="820" data-y="590" data-w="380" data-h="360" aria-label="Polymarket Window">
+          <div class="window-header" data-drag-handle>
+            <div class="window-title">Polymarket</div>
+            <div class="window-meta">
+              <span class="pill">POLY</span>
+              <span class="pill" id="poly-status">idle</span>
+            </div>
+            <div class="window-actions">
+              <button class="window-btn window-close" type="button" title="Close">×</button>
+            </div>
+          </div>
+          <div class="window-body window-body-poly">
+            <form class="poly-form" id="poly-form">
+              <span class="prompt">q&gt;</span>
+              <input id="poly-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="e.g. trump, bitcoin, nfl, 0xabc..." />
+              <select id="poly-category" class="terminal-input" title="Category">
+                <option value="">All</option>
+              </select>
+              <button class="btn" type="submit">Set</button>
+            </form>
+            <div class="poly-stats" id="poly-stats">—</div>
+            <div class="poly" id="poly-feed" aria-label="Polymarket Feed"></div>
+          </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
 
@@ -191,6 +438,9 @@
               </tbody>
             </table>
           </div>
+          <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+          <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+          <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
           <div class="window-resize" data-resize-handle title="Resize"></div>
         </section>
       </main>
@@ -229,10 +479,88 @@
       </div>
 
       <footer class="bottombar" aria-label="Workspaces">
-        <div class="ws-tabs" id="ws-tabs"></div>
-        <button class="ws-add" id="ws-add" type="button" title="New workspace">+</button>
+        <div class="ws-tabs" id="ws-tabs">
+          <button class="ws-tab ws-add" id="ws-add" type="button" title="New workspace">+</button>
+        </div>
       </footer>
     </div>
+
+    <template id="tpl-window-book">
+      <section class="window" data-kind="book" data-title="Order Book" data-x="60" data-y="90" data-w="520" data-h="520" aria-label="Order Book Window">
+        <div class="window-header" data-drag-handle>
+          <div class="window-title">Order Book</div>
+          <div class="window-meta">
+            <select class="ob-select" data-ob-symbol title="Symbol"></select>
+            <select class="ob-select" data-ob-outcome title="Outcome">
+              <option value="YES" selected>YES</option>
+              <option value="NO">NO</option>
+            </select>
+            <select class="ob-select" data-ob-source title="Source"></select>
+            <span class="ob-live" data-ob-live title="Connection status">
+              <span class="ob-dot" data-ob-dot aria-hidden="true"></span>
+              <span data-ob-live-text>LIVE</span>
+            </span>
+          </div>
+          <div class="window-actions">
+            <button class="window-btn window-close" type="button" title="Close">×</button>
+          </div>
+        </div>
+        <div class="window-body window-body-book">
+          <div class="ob-top">
+            <div class="ob-controls">
+              <span class="prompt" data-ob-filter-label style="display:none;">q&gt;</span>
+              <input class="terminal-input" data-ob-filter style="display:none;" autocomplete="off" spellcheck="false" placeholder="filter watchlist…" />
+              <span class="prompt">depth&gt;</span>
+              <select class="terminal-input" data-ob-depth title="Levels">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+              </select>
+              <span class="prompt" data-ob-slip-label style="display:none;">slip&gt;</span>
+              <select class="terminal-input" data-ob-slip-side style="display:none;" title="Side">
+                <option value="BUY" selected>BUY</option>
+                <option value="SELL">SELL</option>
+              </select>
+              <select class="terminal-input" data-ob-slip-mode style="display:none;" title="Mode">
+                <option value="shares" selected>shares</option>
+                <option value="usd">$</option>
+              </select>
+              <input class="terminal-input" data-ob-slip-size style="display:none;" inputmode="decimal" placeholder="size" />
+              <span class="pill" data-ob-slip-out style="display:none;">—</span>
+              <span class="pill" data-ob-updated>updated: —</span>
+              <span class="pill" data-ob-mps>msgs/s: —</span>
+              <span class="pill" data-ob-info style="display:none;">—</span>
+              <span class="pill" data-ob-pos style="display:none;">—</span>
+              <button class="btn" type="button" data-ob-new title="Open another book window">New</button>
+            </div>
+          </div>
+
+          <div class="ob-book">
+            <div class="ob-side ob-asks">
+              <div class="ob-side-title">ASKS</div>
+              <div class="ob-rows" data-ob-asks></div>
+            </div>
+
+            <div class="ob-spread">
+              <div class="ob-spread-line">
+                <span data-ob-spread>SPREAD: —</span>
+              </div>
+              <div class="ob-mid" data-ob-mid>MID: —</div>
+            </div>
+
+            <div class="ob-side ob-bids">
+              <div class="ob-side-title">BIDS</div>
+              <div class="ob-rows" data-ob-bids></div>
+            </div>
+          </div>
+        </div>
+        <div class="window-resize window-resize-tl" data-resize-handle-tl aria-hidden="true"></div>
+        <div class="window-resize window-resize-tr" data-resize-handle-tr aria-hidden="true"></div>
+        <div class="window-resize window-resize-bl" data-resize-handle-bl aria-hidden="true"></div>
+        <div class="window-resize" data-resize-handle title="Resize"></div>
+      </section>
+    </template>
 
     <script src="./app.js"></script>
   </body>

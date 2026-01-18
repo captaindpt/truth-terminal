@@ -24,6 +24,8 @@ export interface StoredTrade {
   outcome: string;
   size: number;
   price: number;
+  title?: string;
+  slug?: string;
 }
 
 // Wallet profile computed from trades

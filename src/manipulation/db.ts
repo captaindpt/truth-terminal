@@ -19,7 +19,9 @@ db.exec(`
     side TEXT NOT NULL,
     outcome TEXT NOT NULL,
     size REAL NOT NULL,
-    price REAL NOT NULL
+    price REAL NOT NULL,
+    title TEXT,
+    slug TEXT
   );
 
   -- Wallet profiles (computed periodically)
@@ -75,26 +77,58 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_wallet_volume ON wallet_profiles(total_volume DESC);
 `);
 
+// Lightweight migrations (keep existing DBs working)
+try {
+  const cols = db.prepare(`PRAGMA table_info(trades)`).all() as Array<{ name: string }>;
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has('title')) db.exec(`ALTER TABLE trades ADD COLUMN title TEXT`);
+  if (!names.has('slug')) db.exec(`ALTER TABLE trades ADD COLUMN slug TEXT`);
+} catch {
+  // ignore
+}
+
 // ============ Trade Operations ============
 
 export function saveTrade(trade: StoredTrade): void {
   const stmt = db.prepare(`
-    INSERT OR IGNORE INTO trades (id, timestamp, market_id, wallet, side, outcome, size, price)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT OR IGNORE INTO trades (id, timestamp, market_id, wallet, side, outcome, size, price, title, slug)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  stmt.run(trade.id, trade.timestamp, trade.marketId, trade.wallet, trade.side, trade.outcome, trade.size, trade.price);
+  stmt.run(
+    trade.id,
+    trade.timestamp,
+    trade.marketId,
+    trade.wallet,
+    trade.side,
+    trade.outcome,
+    trade.size,
+    trade.price,
+    trade.title && trade.title.trim() ? trade.title : null,
+    trade.slug && trade.slug.trim() ? trade.slug : null
+  );
 }
 
 export function saveTrades(trades: StoredTrade[]): number {
   const stmt = db.prepare(`
-    INSERT OR IGNORE INTO trades (id, timestamp, market_id, wallet, side, outcome, size, price)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT OR IGNORE INTO trades (id, timestamp, market_id, wallet, side, outcome, size, price, title, slug)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const insertMany = db.transaction((trades: StoredTrade[]) => {
     let inserted = 0;
     for (const t of trades) {
-      const result = stmt.run(t.id, t.timestamp, t.marketId, t.wallet, t.side, t.outcome, t.size, t.price);
+      const result = stmt.run(
+        t.id,
+        t.timestamp,
+        t.marketId,
+        t.wallet,
+        t.side,
+        t.outcome,
+        t.size,
+        t.price,
+        t.title && t.title.trim() ? t.title : null,
+        t.slug && t.slug.trim() ? t.slug : null
+      );
       if (result.changes > 0) inserted++;
     }
     return inserted;
@@ -122,6 +156,8 @@ export function getTradesForWallet(wallet: string, limit = 100): StoredTrade[] {
     outcome: r.outcome,
     size: r.size,
     price: r.price,
+    title: r.title ?? undefined,
+    slug: r.slug ?? undefined,
   }));
 }
 
@@ -139,6 +175,8 @@ export function getTradesForMarket(marketId: string, limit = 1000): StoredTrade[
     outcome: r.outcome,
     size: r.size,
     price: r.price,
+    title: r.title ?? undefined,
+    slug: r.slug ?? undefined,
   }));
 }
 
@@ -156,6 +194,8 @@ export function getRecentTrades(limit = 100): StoredTrade[] {
     outcome: r.outcome,
     size: r.size,
     price: r.price,
+    title: r.title ?? undefined,
+    slug: r.slug ?? undefined,
   }));
 }
 
